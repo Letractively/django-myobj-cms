@@ -40,8 +40,11 @@ def handle(value, paramscms):
     querydictend = connection.queries
     strsqlq = ''
     if(settings.DEBUG == True and MYCONF.DEBUGSQL == True):
+        timeallsql = 0
+        for sqlline in querydictend[startlenq:]:
+            timeallsql += float(sqlline['time'])
         if(len(querydictend[startlenq:]) > 0):
-            strsqlq = "'SQL': [\n\t" + "\n\t".join(["{'time': '" + dictp['time'] + "', 'sql': '" + dictp['sql'] + "'}," for dictp in querydictend[startlenq:]]) + "\n]"
+            strsqlq = "'SQL': [\n\t" + "\n\t".join(["{'time': '" + dictp['time'] + "', 'sql': '" + dictp['sql'] + "'}," for dictp in querydictend[startlenq:]]) + "\n], 'countQ': " + str(len(querydictend[startlenq:])) + ", 'timeQ': " + str(timeallsql)
     
     t = get_template(patchtemplate)
     html = t.render(Context({'datacontext': datacontext}))
