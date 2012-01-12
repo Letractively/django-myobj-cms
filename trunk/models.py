@@ -32,11 +32,30 @@ class uClasses(models.Model):
     objectsqueryset = []
     def getspace(self,getlines=False):
         return get_space_model(self.id, getlines)
-    def getobjects(self, *args, **kwargs):
+    def getobjects(self, namesvprop=[], *args, **kwargs):
         modelheader = get_space_model(self.id, False)
         newkwargs = {'uclass': str(self.id)}
         newkwargs = dict(newkwargs.items() + kwargs.items())
-        self.objectsqueryset = modelheader.objects.all().filter(**newkwargs)
+        self.objectsqueryset = modelheader.objects.filter(**newkwargs).select_related()
+        tempprop = self.properties.all()
+        templinesdict = {}
+        if(len(namesvprop) > 0):
+            okparamfilt = [str(propobj.id) for propobj in tempprop if propobj.codename in namesvprop]
+            nameheadermodel = self.objectsqueryset[0].__class__.__name__.lower()
+            dictparamf = {}
+            dictparamf[nameheadermodel + '__id__in'] = [str(dictobj.id) for dictobj in self.objectsqueryset]
+            dictparamf['property__id__in'] = okparamfilt
+            templinesall = self.getspace(True).objects.select_related().filter(**dictparamf)
+            templinesallval = dict([(str(objline['id']), str(objline['myobjheaders__id'])) for objline in templinesall.values('id','myobjheaders__id')])
+            for objline in templinesall:
+                try:
+                    templinesdict[templinesallval[str(objline.id)]].append(objline)
+                except:
+                    templinesdict[templinesallval[str(objline.id)]] = [objline]
+        for objqs in self.objectsqueryset:
+            objqs.propertiesclass = tempprop
+            if(len(namesvprop) > 0 and templinesdict.has_key(str(objqs.id))):
+                objqs.templines = templinesdict[str(objqs.id)]
         return self.objectsqueryset
     def initobj(self,**kwargs):
             objectheaher = self.getspace()
@@ -63,7 +82,7 @@ class uClasses(models.Model):
             newkwargs[MYCONF.TYPES_COLUMNS[dict(MYCONF.TYPES_MYFIELDS)[dict(MYCONF.TYPES_MYFIELDS_CHOICES)[namefieldprops[findparam[0]]]]] + fieldlookups] = kwargs[keyw]
             
         modellines = get_space_model(self.id, True)
-        lines = modellines.objects.filter(**newkwargs)
+        lines = modellines.objects.select_related().filter(**newkwargs)
         listidclassobjects = [obj.id for obj in self.objectsqueryset]
         listobjectslinks = []
         for objline in lines:
@@ -277,12 +296,17 @@ class AbsBaseHeaders(models.Model):
             self.save()
         
         return objform
+    propertiesclass = []
+    templines = []
     def getpropforcibly(self):
         dictp = {}
+        if(len(self.propertiesclass) == 0):
+            self.propertiesclass = self.uclass.properties.all()
         try:
-            selflines = self.lines.select_related().all()
-            listidproplines = dict([(str(line.property.id),line) for line in selflines])
-            for objprop in self.uclass.properties.all():
+            if(len(self.templines) == 0):
+                self.templines = self.lines.select_related().all()
+            listidproplines = dict([(str(line.property.id),line) for line in self.templines])
+            for objprop in self.propertiesclass:
                 if(str(objprop.id) in listidproplines.keys()):
                     name_column_lines = MYCONF.TYPES_COLUMNS[dict(MYCONF.TYPES_MYFIELDS)[dict(MYCONF.TYPES_MYFIELDS_CHOICES)[objprop.myfield]]]
                     dictp[objprop.codename] = listidproplines[str(objprop.id)].__getattribute__(name_column_lines)
@@ -290,7 +314,7 @@ class AbsBaseHeaders(models.Model):
                     dictp[objprop.codename] = objprop.udefault
                 self.__typespropsdict[objprop.codename] = dict(MYCONF.TYPES_MYFIELDS_CHOICES)[objprop.myfield]
         except:
-            for objprop in self.uclass.properties.all():
+            for objprop in self.propertiesclass:
                 dictp[objprop.codename] = objprop.udefault
                 self.__typespropsdict[objprop.codename] = dict(MYCONF.TYPES_MYFIELDS_CHOICES)[objprop.myfield]
         return dictp
