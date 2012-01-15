@@ -3,18 +3,20 @@ from myobj.conf import NAVENTRY, getusergrouplist
 from myobj.models import uClasses
 from django.conf import settings
 from django.template import loader, VariableNode
+from django.http import Http404
 
 def getpage(request, *args, **kwargs):
     #get urls
     actionurl = [pr for pr in request.path_info.split('/') if pr != '']
     classmenu = uClasses.objects.get(codename='menu_system')
     itemnav = actionurl[1] if (NAVENTRY != '') else actionurl[0]
-
+    
     if(str(itemnav).isdigit()):
         objmenu = classmenu.getobjects(id=itemnav)
     else:
         objmenu = classmenu.getobjprop(codename_system=itemnav)
-    mythisnav = objmenu[0]
+    try: mythisnav = objmenu[0]
+    except IndexError: raise Http404
     templateobj = mythisnav.links('template_system',False)
     request.__setattr__('mygrouplist', getusergrouplist(requestobj = request))
     counthandles = 0
