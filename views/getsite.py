@@ -2,8 +2,8 @@
 from myobj.conf import NAVENTRY, getusergrouplist
 from myobj.models import uClasses
 from django.conf import settings
-from django.template import loader, VariableNode
-from django.http import Http404
+from django.template import loader, VariableNode, Template, Context
+from django.http import HttpResponse, Http404
 
 def getpage(request, *args, **kwargs):
     #get urls
@@ -20,12 +20,19 @@ def getpage(request, *args, **kwargs):
     templateobj = mythisnav.links('template_system',False)
     request.__setattr__('mygrouplist', getusergrouplist(requestobj = request))
     counthandles = 0
-    if(settings.DEBUG == True):
-        tempt = loader.get_template(templateobj.propertiesdict['patch_tamplate_system'])
-        for variable in tempt.nodelist.get_nodes_by_type(VariableNode):
-            token = variable.filter_expression.token
-            indh = token.find('|handle:')
-            if(indh != -1):
-                counthandles += 1
-    return render_to_response(templateobj.propertiesdict['patch_tamplate_system'], {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl}})
+    mytemplete = Template(templateobj.propertiesdict['html_tamplate_system'])
+    tempt = mytemplete if (templateobj.propertiesdict['isbd_tamplate_system'] != 'False') else loader.get_template(templateobj.propertiesdict['patch_tamplate_system'])
+    for variable in tempt.nodelist.get_nodes_by_type(VariableNode):
+        token = variable.filter_expression.token
+        indh = token.find('|handle:')
+        if(indh != -1):
+            counthandles += 1
+    mycontextdict = {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl}}
+    if(templateobj.propertiesdict['isbd_tamplate_system'] != 'False'):
+        objcontext = Context(mycontextdict)
+        myrender = mytemplete.render(objcontext)
+        response = HttpResponse(myrender)
+    else:
+        response = render_to_response(templateobj.propertiesdict['patch_tamplate_system'], mycontextdict)
+    return response
 

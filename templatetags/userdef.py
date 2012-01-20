@@ -1,7 +1,7 @@
 ﻿from django.template.loader import get_template
 from django.conf import settings
 from myobj import conf as MYCONF
-from django.template import Context
+from django.template import Context, Template
 from django import template
 from django.utils import importlib
 from myobj import utils
@@ -46,7 +46,7 @@ def handle(value, paramscms):
         if(len(querydictend[startlenq:]) > 0):
             strsqlq = "'SQL': [\n\t" + "\n\t".join(["{'time': '" + dictp['time'] + "', 'sql': '" + dictp['sql'] + "'}," for dictp in querydictend[startlenq:]]) + "\n], 'countQ': " + str(len(querydictend[startlenq:])) + ", 'timeQ': " + str(timeallsql)
     
-    t = get_template(patchtemplate)
+    t = get_template(patchtemplate) if (templateobj.propertiesdict['isbd_tamplate_system'] == 'False') else Template(templateobj.propertiesdict['html_tamplate_system'])
     html = t.render(Context({'datacontext': datacontext}))
     #tracing
     end_time = time.time()
@@ -55,9 +55,13 @@ def handle(value, paramscms):
         handle.tracingstr += tracing
     else: handle.tracingstr = tracing
     
-    if(handle.countiter == paramscms['counthand'] and settings.DEBUG == True):
-        html += "<script>var tracingsys = [" + handle.tracingstr + "];</script>"
-        handle.countiter = 0
-        handle.tracingstr = ''
+    if(handle.countiter == paramscms['counthand']):
+        if(settings.DEBUG == True):
+            html += "<script>var tracingsys = [" + handle.tracingstr + "];</script>"
+            del handle.tracingstr
+        
+        del handle.countiter
+        del handle.handlesnav
+        del handle.handleobj
     
     return html

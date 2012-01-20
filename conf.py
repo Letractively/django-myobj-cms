@@ -125,7 +125,9 @@ CLASS_NAME_GROUP = 'group_system'
 CLASS_NAME_HANDLE = 'handle_system'
 PROP_NAME_PARENT_MENU = 'parent_elnav_system'
 PROP_PATCH_TEMPLATE_SYS = 'patch_tamplate_system'
-PROP_PARAMSNAV_SYS = 'params_system'
+PROP_ISBD_TEMPLATE_SYS = 'isbd_tamplate_system'
+PROP_HTML_TEMPLATE_SYS = 'html_tamplate_system'
+CLASS_PARAMSNAV_SYS = 'params_system'
 
 def vi_proc(request):
     urlpath = [s for s in request.path.split('/') if s!='']
