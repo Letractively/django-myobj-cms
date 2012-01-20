@@ -322,10 +322,10 @@ class optionswitch:
                 cheseelnone = (0,'---')
                 objformclass = designUI
                 objectnav = objectclass.getobjects(id=idobjurl['paramslist'][3])[0]
-                allObjectsTemplates = dict([(str(obj.id), obj) for obj in uClasses.objects.get(name='template_system').getobjects()])
+                allObjectsTemplates = dict([(str(obj.id), obj) for obj in uClasses.objects.get(name='template_system').getobjects(namesvprop=[MYCONF.PROP_PATCH_TEMPLATE_SYS])])
                 allObjectsViews = dict([(str(obj.id), obj) for obj in uClasses.objects.get(name='views_system').getobjects()])
                 
-                linkstemplatesnav = objectnav.links('template_system',False)
+                linkstemplatesnav = objectnav.links('template_system',False,namesvprop=[MYCONF.PROP_PATCH_TEMPLATE_SYS])
                 linksHandlesSysDict = dict([(objhandle.name, objhandle) for objhandle in objectnav.links('handle_system')])
                 
                 classHandle = uClasses.objects.get(codename='handle_system')
@@ -345,7 +345,7 @@ class optionswitch:
                 
                 objform = objformclass(dictparamsform)
                 
-                dicttemplatesall = [cheseelnone] + [(numhash, allObjectsTemplates[numhash].propertiesdict[MYCONF.PROP_PATCH_TEMPLATE_SYS]) for numhash in allObjectsTemplates]
+                dicttemplatesall = [cheseelnone] + [(numhash, allObjectsTemplates[numhash].name + ':' + allObjectsTemplates[numhash].propertiesdict[MYCONF.PROP_PATCH_TEMPLATE_SYS]) for numhash in allObjectsTemplates]
                 objform.fields['templates'] = forms.ChoiceField(dicttemplatesall, required=False)
                 
                 dictviewsall = [cheseelnone] + [(numhash, allObjectsViews[numhash].name) for numhash in allObjectsViews]
@@ -592,7 +592,7 @@ def controller(request, object, dicturls):
         classview = uClasses.objects.get(codename=MYCONF.CLASS_NAME_GROUP)
         paramp = dicturls['class'] + '/linkall/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass']) + '/classes/' + str(classview.id) + '/permission'
     elif(dictparams['nameurl'] == 'urlparamsnav'):
-        classview = uClasses.objects.get(codename=MYCONF.PROP_PARAMSNAV_SYS)
+        classview = uClasses.objects.get(codename=MYCONF.CLASS_PARAMSNAV_SYS)
         paramp = dicturls['class'] + '/linkall/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass']) + '/classes/' + str(classview.id) + '/params'
     
     return HttpResponseRedirect('/' + dicturls['myadm'] + '/' + str(paramp))
