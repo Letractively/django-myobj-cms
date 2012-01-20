@@ -267,24 +267,25 @@ class optionswitch:
             fields_form = MYCONF.FORMS_ELEMENT_EDIT[idobjurl['class']]
             dictparamsform = {}
             if(idobjurl['paramslist'][0] != '0'):
-                exclist = INSTALLCONF.listadminclassview if (object is uClasses) else INSTALLCONF.listadminpropsview
                 objmodel = object.objects.get(id=idobjurl['paramslist'][0])
                 for name_attr in fields_form:
                         dictparamsform[name_attr] = objmodel.__getattribute__(name_attr)
-                if(objmodel.codename in exclist):
-                    objform = ''
-                else:
-                    objform = objformclass(dictparamsform)
+                objform = objformclass(dictparamsform)
             else:
                 objmodel = object()
                 objform = objformclass()
             
             if(request.POST.has_key('onsubmit') and request.POST['onsubmit'] != ''):
+                issystemobj = False
+                exclist = INSTALLCONF.listadminclassview if (object is uClasses) else INSTALLCONF.listadminpropsview
+                if(objmodel.codename in exclist):
+                    issystemobj = True
                 dictparamsform = {}
                 for name_attr in fields_form:
                     dictparamsform[name_attr] = request.POST.get(name_attr,False)
-                objform = objformclass(dictparamsform)
-                if(objform.is_valid()):
+                if(issystemobj == True): objform = ''
+                else: objform = objformclass(dictparamsform)
+                if(objform != '' and objform.is_valid()):
                     for name_attr in fields_form:
                         objmodel.__setattr__(name_attr,request.POST.get(name_attr,False))
                     try:
