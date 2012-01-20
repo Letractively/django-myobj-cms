@@ -46,7 +46,7 @@ class uClasses(models.Model):
             dictparamf[nameheadermodel + '__id__in'] = [str(dictobj.id) for dictobj in self.objectsqueryset]
             dictparamf['property__id__in'] = okparamfilt
             templinesall = self.getspace(True).objects.select_related().filter(**dictparamf)
-            templinesallval = dict([(str(objline['id']), str(objline['myobjheaders__id'])) for objline in templinesall.values('id','myobjheaders__id')])
+            templinesallval = dict([(str(objline['id']), str(objline[nameheadermodel + '__id'])) for objline in templinesall.values('id',nameheadermodel + '__id')])
             for objline in templinesall:
                 try:
                     templinesdict[templinesallval[str(objline.id)]].append(objline)
