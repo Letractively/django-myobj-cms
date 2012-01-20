@@ -342,7 +342,7 @@ class AbsBaseHeaders(models.Model):
         return tmp
     
     @therelinks
-    def links(self, classname, asall = True):
+    def links(self, classname, asall = True, namesvprop=[]):
         dictparam = {}
         dictparam['uclass__id' if str(classname).isdigit() else 'uclass__codename'] = classname
 
@@ -350,7 +350,7 @@ class AbsBaseHeaders(models.Model):
         dictparaminclass = {}
         dictparaminclass['id' if str(classname).isdigit() else 'codename'] = classname
         objclass = uClasses.objects.get(**dictparaminclass)
-        objects = objclass.getobjects(id__in = listidobjects)
+        objects = objclass.getobjects(id__in = listidobjects,namesvprop=namesvprop)
         return objects if (asall == True) else (objects[0] if (len(objects) > 0) else False)
     
     def _getlinks(self):
