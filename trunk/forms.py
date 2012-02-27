@@ -15,6 +15,9 @@ class actionsetparam(forms.Form):
     order2 = forms.CharField(widget=forms.HiddenInput, required=False)
     searchcolumn = forms.CharField(widget=forms.HiddenInput, required=False)
     searchstrv = forms.CharField(widget=forms.HiddenInput, required=False)
+    model = forms.CharField(widget=forms.HiddenInput, required=False)
+    idobjparentobj = forms.CharField(widget=forms.HiddenInput, required=False)
+    nameprop = forms.CharField(widget=forms.HiddenInput, required=False)
 
 class FormCL(forms.Form):
     name = forms.CharField(max_length=30)
