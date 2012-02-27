@@ -230,6 +230,9 @@ class optionswitch:
             elif(dicturls['paramslist'][0] == 'install'):
                 value_in = 'install the system'
                 inhtml = '<script>$("#addnewelementbutton").click(function() { document.forms["actnameurl"].nameurl.value = "install"; document.forms["actnameurl"].submit(); return false })</script>'
+            elif(dicturls['paramslist'][0] == 'model'):
+                urlactnone = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/model/' + dicturls['paramslist'][1] + '/obj/0'
+                inhtml = ''
             else:
                 if(dicturls['paramslist'][0] == 'linkall'):
                     urlactnone = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/class/' + dicturls['paramslist'][5] + '/obj/0'
