@@ -17,7 +17,7 @@ class objProperties(models.Model):
     def __unicode__(self):
         return self.name
     class Meta:
-        db_table = 'ucms_objproperties'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_objproperties'
         verbose_name = 'Properties'
         
 
@@ -94,7 +94,7 @@ class uClasses(models.Model):
     def __unicode__(self):
         return self.name
     class Meta:
-        db_table = 'ucms_uclasses'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_uclasses'
         verbose_name = 'Classes'
         
 
@@ -112,13 +112,13 @@ class AbsBaseLines(models.Model):
 
 class systemObjLines(AbsBaseLines):
     class Meta:
-        db_table = 'ucms_systemobjlines'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_systemobjlines'
 class myObjLines(AbsBaseLines):
     class Meta:
-        db_table = 'ucms_myobjlines'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_myobjlines'
 #class newHeadersLines(AbsBaseLines):
     #class Meta:
-        #db_table = 'ucms_newHeadersLines'
+        #db_table = MYCONF.PROJECT_NAME + '_ucms_newHeadersLines'
 
 class linksObjectsAll(models.Model):
     idobj = models.IntegerField(blank=False)
@@ -126,7 +126,7 @@ class linksObjectsAll(models.Model):
     uclass = models.ForeignKey(uClasses)
     links = models.ManyToManyField("self",blank=True)
     class Meta:
-        db_table = 'ucms_linksobjectsall'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_linksobjectsall'
         
 #headersObject
 class AbsBaseHeaders(models.Model):
@@ -438,13 +438,13 @@ class systemObjHeaders(AbsBaseHeaders):
     #user params
     sort = models.PositiveSmallIntegerField(blank=True,null=True,default=0)
     class Meta:
-        db_table = 'ucms_systemobjheaders'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_systemobjheaders'
 class myObjHeaders(AbsBaseHeaders):
     lines = models.ManyToManyField(myObjLines,blank=True) #без строк можно создать
     #user params
     sort = models.IntegerField(blank=True,null=True,default=0)
     class Meta:
-        db_table = 'ucms_myobjheaders'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_myobjheaders'
 
 ###  example new space
 #class testmtm(models.Model):
@@ -460,7 +460,7 @@ class myObjHeaders(AbsBaseHeaders):
     #mtmp = models.ManyToManyField(testmtm,blank=True)
     #fkp = models.ForeignKey(testfk)
     #class Meta:
-        #db_table = 'ucms_newheaderslines'
+        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheaderslines'
 
 # MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
 TABLE_SPACE = {
@@ -504,4 +504,4 @@ class systemUploadsFiles(models.Model):
         if(isnewelem):
             self.renamefile(isrand=True)
     class Meta:
-        db_table = 'ucms_uploadfiles'
+        db_table = MYCONF.PROJECT_NAME + '_ucms_uploadfiles'

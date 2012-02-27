@@ -1,5 +1,7 @@
 ﻿from myobj import utils
+from django.conf import settings
 DEBUGSQL = True
+PROJECT_NAME = (settings.ROOT_URLCONF).split('.')[0]
 MYSPACE_TABLES_CHOICES = (
     (1, 'my'),
     (2, 'system'),
