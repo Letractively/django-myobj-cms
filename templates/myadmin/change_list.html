@@ -149,6 +149,9 @@ listchangespace.elmen.tablescolect.live('dblclick mousedown mouseout mouseover',
             else if(mysystem.urlparam['class']=='uclasses' || mysystem.urlparam['class']=='objproperties') {
                 location.href = '/'+mysystem.urlparam['myadm']+'/'+mysystem.urlparam['class']+'/'+idobj;
             }
+            else if(mysystem.urlparam['class']=='uobjects' && mysystem.urlparam['paramslist'][0]=='model') {
+                location.href = '/'+mysystem.urlparam['myadm']+'/'+mysystem.urlparam['class']+'/model/' + mysystem.urlparam['paramslist'][1] + '/obj/' +idobj;
+            }
         }
         else if(e.type == 'mousedown') {
             xpos = ($(window).width() < (e.pageX + $(listchangespace.elmen).innerWidth()))? e.pageX - $(listchangespace.elmen).width() : e.pageX;
@@ -237,6 +240,13 @@ $('#menelem a').live('click',
             listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][3];
             listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][1];
             listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][5];
+        }
+        else if(mysystem.urlparam['paramslist'][0]=='model') {
+            listchangespace.formactparam.model.value = mysystem.urlparam['paramslist'][1];
+            listchangespace.formactparam.params.value = 'ismodellink';
+            listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][4];
+            listchangespace.formactparam.idobjparentobj.value = mysystem.urlparam['paramslist'][6];
+            listchangespace.formactparam.nameprop.value = mysystem.urlparam['paramslist'][8];
         }
         if(listchangespace.formactparam.nameurl.value=='allclassfiltered' || listchangespace.formactparam.nameurl.value=='csvimp' || listchangespace.formactparam.nameurl.value=='urlmovemenuobj' || listchangespace.formactparam.nameurl.value=='urlremove' || listchangespace.formactparam.nameurl.value=='urladdlinkclass' || listchangespace.formactparam.nameurl.value=='urladdlinkobject') {
             if(listchangespace.formactparam.objects.value == '' && (listchangespace.formactparam.nameurl.value!='urladdlinkclass' & listchangespace.formactparam.nameurl.value!='urladdlinkobject')) {

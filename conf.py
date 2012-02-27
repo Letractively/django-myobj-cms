@@ -12,6 +12,10 @@ UPARAMS_MYSPACES = {
     #'mynewspace': [('mtmtestf','myobj.models__testf'),('fktestf2','myobj.models__testf2')]
 }
 
+UPARAMS_MODELS ={
+    'files': {'model': 'myobj.models__systemUploadsFiles','editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']}
+}
+
 UPARAMS_LIST_COLUMNS_MYSPACES = {
     'my': [],
     'system': [],
@@ -46,6 +50,7 @@ TYPES_MYFIELDS_CHOICES = (
     (9, 'ip'),
     (10, 'email'),
     (11, 'bool'),
+    (12, 'files'),
 )
 
 TYPES_MYFIELDS = (
@@ -60,6 +65,7 @@ TYPES_MYFIELDS = (
     ('ip', 'char'),
     ('email', 'char'),
     ('bool', 'char'),
+    ('files', 'text'),
 
 )
 
@@ -85,8 +91,7 @@ listtopmen = [
     ),
     (
         'sys',
-        [('groups','/' + nameadmin_patch + '/myobj/uobjects/class/group_system')],
-        ''
+        [('files','/' + nameadmin_patch + '/myobj/uobjects/model/files')],
     )
 ]
 

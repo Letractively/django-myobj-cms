@@ -235,6 +235,7 @@ class AbsBaseHeaders(models.Model):
             elif(dict_myfield[myprop['myfield']] == 'ip'): switchfield = forms.IPAddressField(required = bool(myprop['required']))
             elif(dict_myfield[myprop['myfield']] == 'email'): switchfield = forms.EmailField(required = bool(myprop['required']))
             elif(dict_myfield[myprop['myfield']] == 'bool'): switchfield =  forms.BooleanField(required = bool(myprop['required']))
+            elif(dict_myfield[myprop['myfield']] == 'files'): switchfield = forms.CharField(min_length = minparam, max_length = maxparam, required=bool(myprop['required']))
             
             objform.fields[myprop['codename']] = switchfield
         if(len(many_and_foreign_dict) > 0):
@@ -393,7 +394,7 @@ class AbsBaseHeaders(models.Model):
             objlinks = linksObjectsAll.objects.get(idobj=self.id,uclass=self.uclass)
             objlinks.name = self.name
             objlinks.save()
-        #если объекта нет в таблице ссылок создаем его
+        #if the object does not create a table of links to
         except:
             #objlink = linksObjectsAll(idobj=self.id)
             #objlink.save()
@@ -475,3 +476,32 @@ def get_space_model(idnameclass, getlines): # getlines is False then return Head
         objclassmodel = uClasses.objects.get(codename=str(idnameclass))
     typlespace = TABLE_SPACE.get(objclassmodel.tablespace, False)
     return typlespace[1 if getlines else 0]
+class systemUploadsFiles(models.Model):
+    name = models.CharField(max_length=255)
+    dfile = models.FileField(upload_to="ucmsfiles")
+    def renamefile(self,setname='',isrand=False):
+        import os
+        import random
+        stmp = 'qwertyuiasdfghjzxc234'
+        randname = ''.join(random.sample(stmp,len(stmp)))
+        newpath = ''
+        oldpath = self.dfile.path
+        tuplepath = os.path.split(oldpath)
+        if(setname!=''):
+            tuplepath = os.path.split(setname)
+            if(tuplepath[0]!=''):
+                self.dfile.field.upload_to = tuplepath[0]
+            newpath = os.path.join(tuplepath[0], tuplepath[1])
+        elif(isrand == True): newpath = os.path.join(tuplepath[0], randname + '.' + tuplepath[1].split('.')[1])
+        else:
+            return False
+        self.dfile.save(newpath,self.dfile)
+        #os.remove(oldpath)
+    def save(self, *args, **kwargs):
+        isnewelem = False
+        if(self.id == None): isnewelem = True
+        super(systemUploadsFiles, self).save(*args, **kwargs)
+        if(isnewelem):
+            self.renamefile(isrand=True)
+    class Meta:
+        db_table = 'ucms_uploadfiles'

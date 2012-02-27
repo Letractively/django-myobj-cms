@@ -39,7 +39,7 @@
 
 
 
-<form name="moref" method="post">{% csrf_token %}
+<form enctype="multipart/form-data" name="moref" method="post">{% csrf_token %}
 <table>
 {{myhtml.as_table}}
 </table>
@@ -55,6 +55,12 @@ var defhtninit = {
         ["link", "unlink", "|", "image", "|", "justifyLeft","justifyCenter","justifyRight", "|", "horizontalrule"]
     ]
 }
+var arriselemfiles = { {% for key, value in myhtml.typesprops.items %}{% if value in myhtml.listnamelinkmodel %}'{{ key }}': '{{value}}',{% endif %}{% endfor %} };
+if(mysystem.urlparam['paramslist'][3] > 0) {
+for(var namekey in arriselemfiles) {
+    $('#id_'+namekey).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/model/' + arriselemfiles[namekey] + '/links/class/' + mysystem.urlparam['paramslist'][1] + '/obj/' + mysystem.urlparam['paramslist'][3] + '/prop/' + namekey + '">ids model ' + arriselemfiles[namekey] + '</a>');
+}}
+
 {% for key, value in myhtml.typesprops.items %}
 {% if value == "html" %}
     $(function() {$('#id_{{ key }}').htmlarea(defhtninit)});
