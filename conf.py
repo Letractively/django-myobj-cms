@@ -5,23 +5,24 @@ PROJECT_NAME = (settings.ROOT_URLCONF).split('.')[0]
 MYSPACE_TABLES_CHOICES = (
     (1, 'my'),
     (2, 'system'),
-    #add your space (3, 'mynewspace'),
+    #(3, 'newheaders'),
 )
 
 UPARAMS_MYSPACES = {
-    'my': ['sort'],
-    'system': ['sort'],
-    #'mynewspace': [('mtmtestf','myobj.models__testf'),('fktestf2','myobj.models__testf2')]
+    'my': ['name','sort'],
+    'system': ['name','sort'],
+    #'newheaders': ['name']
 }
 
-UPARAMS_MODELS ={
-    'files': {'model': 'myobj.models__systemUploadsFiles','editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']}
+STRUCT_MODELS = {
+    'myobj.models__systemUploadsFiles': 
+        {'editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']},
 }
 
 UPARAMS_LIST_COLUMNS_MYSPACES = {
     'my': [],
     'system': [],
-    #'mynewspace': [],
+    #'newheaders': [''],
 }
 
 FORMS_ELEMENT_EDIT = {
@@ -93,10 +94,10 @@ listtopmen = [
     ),
     (
         'sys',
-        [('files','/' + nameadmin_patch + '/myobj/uobjects/model/files')],
+        [('model', [(namemodel, '/' + nameadmin_patch + '/myobj/uobjects/model/' + namemodel) for namemodel in STRUCT_MODELS.keys()], ''),],
     )
 ]
-
+#('add','/' + nameadmin_patch + '/uobjects/model/')
 sntui = [('add','urladd'), ('remove','urlremove'), ('edit','urledit'), ('csv', [('export', 'csvexp', 'clcsvexp'), ('import', 'csvimp')], '')]
 
 TYPES_DEF_CLASSES = {
@@ -120,8 +121,8 @@ TYPES_DEF_CLASSES = {
 {
     'namenormal': 'Objects', 
     'userui': sntui + [('links', 'urllinksobj', 'classlinkm')], 
-    'name': ['id', 'name', None, ('uclass','name')], 
-    'namep': ['id', 'name', None, u'name class'], 
+    'name': ['id', None, ('uclass','name')], 
+    'namep': ['id', None, u'name class'], 
     'namecont': u'Objects'
 }
 }

@@ -1,4 +1,4 @@
-def mumenrec(oblist,ul='ul',li='li',tagli='p'):
+﻿def mumenrec(oblist,ul='ul',li='li',tagli='p'):
     strmod = '<' + ul + '>'
     for obl in oblist:
         try:
@@ -58,3 +58,35 @@ def comparelist(list1,list2):
         for ellist in list1:
             if(ellist in list2): lenok += 1
         return True if (lenok == len(maxlist)) else False
+def getlinks(objectedit,name,listid=True):
+        elements = None
+        if(hasattr(objectedit,name)):
+            elemvaluempar = objectedit.__getattribute__(name)
+            if(hasattr(elemvaluempar,'model')):
+                elements = ('' if (elemvaluempar.count() == 0) else (",".join(([str(dictp['id']) for dictp in elemvaluempar.values('id')])) if listid else elemvaluempar ))
+            else:
+                elements = ('' if (hasattr(elemvaluempar,'id') == False) else (str(elemvaluempar.id) if listid else elemvaluempar ))
+            
+        return elements
+
+def renamefile(objfile,setname='',isrand=False):
+    import os
+    import random
+    stmp = 'qwertyuiasdfghjzxc234'
+    randname = ''.join(random.sample(stmp,len(stmp)))
+    newpath = ''
+    oldpath = objfile.path
+    tuplepath = os.path.split(oldpath)
+    if(setname!=''):
+        tuplepath = os.path.split(setname)
+        if(tuplepath[0]!=''):
+            objfile.field.upload_to = tuplepath[0]
+        newpath = os.path.join(tuplepath[0], tuplepath[1])
+    elif(isrand == True): newpath = os.path.join(tuplepath[0], randname + '.' + tuplepath[1].split('.')[1])
+    else:
+        return False
+    objfile.save(newpath,objfile)
+    #os.remove(oldpath) #нудно удалять или параметр isdelete
+
+def ismtmfield(obj,col):
+    return True if (col + '_id' not in dir(obj)) else False

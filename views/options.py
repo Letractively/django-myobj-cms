@@ -117,7 +117,7 @@ class optionswitch:
             objectclass = uClasses.objects.get(id=dicturls['paramslist'][1])
             if(objectclass.codename == MYCONF.CLASS_NAME_MENU):
                 ismenu = True
-            proplist['name'][2:3] = proplist['namep'][2:3] = MYCONF.UPARAMS_LIST_COLUMNS_MYSPACES[objectclass.get_tablespace_display()]
+            proplist['name'][1:2] = proplist['namep'][1:2] = MYCONF.UPARAMS_LIST_COLUMNS_MYSPACES[objectclass.get_tablespace_display()]
         elif(islinks == True):
             proplist['name'] = [elem for elem in proplist['name'] if elem != None]
             proplist['namep'] = [elem for elem in proplist['namep'] if elem != None]
@@ -141,7 +141,8 @@ class optionswitch:
         if(request.POST.has_key('objectsno') and request.POST['objectsno'] != ''):
             listnochecked = [str(obj) for obj in request.POST['objectsno'].split(',')]
         listchecked = []
-        if(dicturls['paramslist'][0] == 'model' and dicturls['paramslist'][2] == 'links'):
+        #links id's
+        if(dicturls['paramslist'][0] == 'model' and dicturls['paramslist'][2] == 'links' and dicturls['paramslist'][6] != '0'):
             classobj = uClasses.objects.get(id=dicturls['paramslist'][4])
             objectedits = classobj.getobjects(id=dicturls['paramslist'][6])
             listchecked = objectedits[0].propertiesdict[dicturls['paramslist'][8]].split(',')
@@ -151,24 +152,31 @@ class optionswitch:
             listchecked = [str(obj) for obj in request.POST['objects'].split(',')]
         if(islinks):
             if(dicturls['paramslist'][4] == 'linksmodel' and dicturls['paramslist'][3] != '0'):
-                objectclass = uClasses.objects.get(id=dicturls['paramslist'][1])
-                myobjlinkp = objectclass.getobjects(id=dicturls['paramslist'][3])[0]
+                if(dicturls['paramslist'][0] != 'model'):
+                    objectclass = uClasses.objects.get(id=dicturls['paramslist'][1])
+                    myobjlinkp = objectclass.getobjects(id=dicturls['paramslist'][3])[0]
+                else:
+                    mymodelconf = dicturls['paramslist'][1]
+                    strnamemodul = mymodelconf.split('__')[0]
+                    strnamemodel = mymodelconf.split('__')[1]
+                    objworkprep = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
+                    myobjlinkp = objworkprep.objects.get(id=dicturls['paramslist'][3])
                 if(hasattr(myobjlinkp.__getattribute__(dicturls['paramslist'][6]),'model')):
-                    listchecked.extend([str(dict['id']) for dict in myobjlinkp.__getattribute__(dicturls['paramslist'][6]).values('id')])
+                    listchecked.extend([str(dictobj['id']) for dictobj in myobjlinkp.__getattribute__(dicturls['paramslist'][6]).values('id')])
             elif(dicturls['class']=='objproperties'):
-                listchecked.extend([str(dict['id']) for dict in uClasses.objects.get(id=dicturls['paramslist'][2]).__getattribute__('properties').values('id')])
+                listchecked.extend([str(dictobj['id']) for dictobj in uClasses.objects.get(id=dicturls['paramslist'][2]).__getattribute__('properties').values('id')])
             else:
                 thislinks = self._istherelinks(dicturls['paramslist'][1], dicturls['paramslist'][3])
                 if(dicturls['class']=='uclasses'):
                     if(dicturls['paramslist'][0] == 'link'):
                         if(thislinks):
-                            listchecked.extend([str(dict['uclass']) for dict in thislinks.links.values('uclass').distinct()])
+                            listchecked.extend([str(dictobj['uclass']) for dictobj in thislinks.links.values('uclass').distinct()])
                     else:
-                        listchecked.extend([str(dict['id']) for dict in uClasses.objects.get(id=dicturls['paramslist'][2]).__getattribute__('aggregation').values('id')])
+                        listchecked.extend([str(dictobj['id']) for dictobj in uClasses.objects.get(id=dicturls['paramslist'][2]).__getattribute__('aggregation').values('id')])
                 elif(dicturls['paramslist'][0] == 'linkall'):
                     if(thislinks):
-                        listchecked.extend([str(dict['id']) for dict in thislinks.links.values('id')])
-                
+                        listchecked.extend([str(dictobj['id']) for dictobj in thislinks.links.values('id')])
+            
         leftmen = ''
         htmltr = ''
         excludelist = []
@@ -230,8 +238,14 @@ class optionswitch:
             elif(dicturls['paramslist'][0] == 'install'):
                 value_in = 'install the system'
                 inhtml = '<script>$("#addnewelementbutton").click(function() { document.forms["actnameurl"].nameurl.value = "install"; document.forms["actnameurl"].submit(); return false })</script>'
-            elif(dicturls['paramslist'][0] == 'model'):
-                urlactnone = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/model/' + dicturls['paramslist'][1] + '/obj/0'
+            elif(dicturls['paramslist'][0] == 'model' or dicturls['paramslist'][4] == 'linksmodel'):
+                modelnamelink = dicturls['paramslist'][5]
+                if(dicturls['paramslist'][4] != 'linksmodel'):
+                    modelnamelink = dicturls['paramslist'][1]
+                elif(dicturls['paramslist'][4] == 'linksmodel' and dicturls['paramslist'][0] == 'class'):
+                    modelnamelink = dict([nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]] if isinstance(nameparam,tuple)])[dicturls['paramslist'][6]]
+                urlactnone = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/model/' + modelnamelink + '/obj/0'
+                del modelnamelink
                 inhtml = ''
             else:
                 if(dicturls['paramslist'][0] == 'linkall'):
@@ -263,10 +277,6 @@ class optionswitch:
         
         htmltr = '<table>' + optiontop + htmltr + '</table>' + pagination
         return htmltr
-    def formmodel(self, classmodel,paramsedit=[]):
-        ObjFormSet = modelformset_factory(classmodel, fields=tuple(paramsedit))
-        formset = ObjFormSet(queryset=classmodel.objects.none())
-        return formset
     def change_form(self, object, request, idobjurl):
         
         if(object is uClasses or object is objProperties):
@@ -309,23 +319,101 @@ class optionswitch:
         elif(idobjurl['class'] == 'uobjects'):
             objectclass = None
             if(idobjurl['paramslist'][0] == 'model'):
-                elemseditlist = MYCONF.UPARAMS_MODELS[idobjurl['paramslist'][1]]['editcolumns']
-                formset = self.formmodel(object,elemseditlist)
+                elemseditlist = MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['editcolumns']
+                ObjFormSet = modelformset_factory(object, fields=tuple(elemseditlist))
+                formset = ObjFormSet(queryset=object.objects.none())
+                
+                if(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]].has_key('links')):
+                    ObjFormSetTestf = modelformset_factory(object, fields=tuple([nameparam[0] for nameparam in MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['links']]))
+                    formsetsearchf = ObjFormSetTestf(queryset=object.objects.none())
+                
                 listelemimage = []
-                if(idobjurl['paramslist'][3] == '0'):
-                    objform = formset.form()
-                    objectcurrent = object()
-                else:
-                    dictparamsinit = {}
+                
+                objectcurrent = object()
+                dictparamsinit = {}
+                #links standatr model
+                many_and_foreign_dict = {}
+                jsparamht = {}
+                if(idobjurl['paramslist'][3] != '0'):
+                    objectedit = object.objects.get(id=idobjurl['paramslist'][3])
+                if(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]].has_key('links')):
+                    for nameparammodel in MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['links']:
+                        valuelink = utils.getlinks(objectedit,nameparammodel[0]) if idobjurl['paramslist'][3] != '0' else ''
+                        if(idobjurl['paramslist'][1].find('__') != -1):
+                            nameelemmodellink = dict(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['links'])[nameparammodel[0]]
+                        else:
+                            nameelemmodellink = idobjurl['paramslist'][1]
+                        jsparamht[nameparammodel[0]] = nameelemmodellink + '___' + nameparammodel[0]
+                        many_and_foreign_dict[nameparammodel[0]] = valuelink
+                        if(request.POST.has_key(nameparammodel[0] + '__prev_')):
+                            many_and_foreign_dict[nameparammodel[0] + '__prev_'] = request.POST[nameparammodel[0] + '__prev_']
+                        else:
+                            many_and_foreign_dict[nameparammodel[0] + '__prev_'] = valuelink
+                            
+                if(len(many_and_foreign_dict) > 0):
+                    dictparamsinit = dict(dictparamsinit.items() + many_and_foreign_dict.items())
+                if(idobjurl['paramslist'][3] != '0'):
                     objectcurrent = object.objects.get(id=idobjurl['paramslist'][3])
-                    for elemedit in elemseditlist:
-                        dictparamsinit[elemedit] = objectcurrent.__getattribute__(elemedit)
-                    nameclassobj = objectcurrent.__class__.__name__
-                    if(nameclassobj == 'systemUploadsFiles'):
-                        dictparamsinit['patch_name_file'] = objectcurrent.dfile.name
-                    objform = formset.form(dictparamsinit)
-                    if(dictparamsinit.has_key('patch_name_file') == True):
-                        objform.fields['patch_name_file'] = forms.CharField()
+                for elemedit in elemseditlist:
+                    dictparamsinit[elemedit] = objectcurrent.__getattribute__(elemedit)
+                nameclassobj = objectcurrent.__class__.__name__
+                if(nameclassobj == 'systemUploadsFiles'):
+                    dictparamsinit['patch_name_file'] = objectcurrent.dfile.name
+                
+                addinitial = {}
+                if(request.POST.has_key('params')):
+                    addinitial[request.POST['params']] = {'objects': request.POST['objects'], 'idobj': request.POST['idobj'], 'objectsno': request.POST['objectsno'], 'exclude':  request.POST['exclude'], 'nameparam':  request.POST['idobjparentobj']}
+                if(len(addinitial) > 0):
+                    nameparam = request.POST['params']
+                    if(isinstance(addinitial[nameparam],dict)):
+                        strnamemodul = nameparam.split('__')[0]
+                        strnamemodel = nameparam.split('__')[1]
+                        mymodel = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
+                        #links
+                        ismtm = False
+                        try:
+                            #mtm
+                            if(hasattr(objectcurrent.__getattribute__(addinitial[nameparam]['nameparam']),'model')):
+                                ismtm = True
+                            #link mtm None
+                        except ValueError:
+                            ismtm = True
+                        #link fj
+                        except DoesNotExist:
+                            ismtm = False
+                        if(ismtm == True and addinitial[nameparam]['objects']!= ''):
+                            myobjscheck = addinitial[nameparam]['objects'].split(',')
+                            myobjschecknon = []
+                            if(addinitial[nameparam]['objectsno'] != ''):
+                                myobjschecknon = addinitial[nameparam]['objectsno'].split(',')
+                            if(addinitial[nameparam]['exclude'] == '1'):
+                                objectdeleting = mymodel.objects.exclude(id__in = myobjschecknon)
+                            else:
+                                objectdeleting = mymodel.objects.filter(id__in = myobjscheck)
+                            
+                            dictparamsinit[addinitial[nameparam]['nameparam']] = ",".join([str(dictp['id']) for dictp in objectdeleting.values('id')])
+                        else:
+                            dictparamsinit[addinitial[nameparam]['nameparam']] = addinitial[nameparam]['idobj']
+                        del mymodel, ismtm
+                    #no link
+                    else:
+                        dictparamsinit[nameparam] = addinitial[nameparam]
+                objform = formset.form(initial=dictparamsinit)
+                prevsaved = {}
+                def fieldsformpr(objform, mtm_a_fk_dict):
+                    if(len(jsparamht) > 0):
+                        objform.__setattr__('mtomfk',jsparamht)
+                    for elemparammodel in many_and_foreign_dict:
+                        if(elemparammodel.find('__prev_') == -1):
+                            if(request.POST.has_key(elemparammodel) and request.POST[elemparammodel] != ''):
+                                prevsaved[elemparammodel] = request.POST[elemparammodel]
+                            objform.fields[elemparammodel] = forms.CharField(required = (formsetsearchf.forms[0].fields[elemparammodel].required))
+                        else:
+                            objform.fields[elemparammodel] = forms.CharField(widget=forms.HiddenInput,required = False)
+                if(len(many_and_foreign_dict) > 0):
+                    fieldsformpr(objform,many_and_foreign_dict)
+                if(dictparamsinit.has_key('patch_name_file') == True):
+                    objform.fields['patch_name_file'] = forms.CharField()
                 for namecfield in objform.fields:
                     if(objform.fields[namecfield].__class__.__name__ == 'FileField'):
                         listelemimage.append(namecfield)
@@ -336,6 +424,7 @@ class optionswitch:
                         if(objform.fields[namecfield].__class__.__name__ == 'FileField' and ((hasattr(request,'FILES') and len(request.FILES) > 0) or idobjurl['paramslist'][3]!='0')):
                             listelemimage.append(namecfield)
                             objform.fields[namecfield] = forms.FileField(required = False)
+                    fieldsformpr(objform,many_and_foreign_dict)
                     if(objform.is_valid()):
                         for nameelemmodel in elemseditlist:
                             if(nameelemmodel not in listelemimage):
@@ -343,15 +432,47 @@ class optionswitch:
                             elif(request.FILES.has_key(nameelemmodel)):
                                 objectcurrent.__setattr__(nameelemmodel,request.FILES[nameelemmodel])
                         if(request.POST.has_key('patch_name_file') and request.POST['patch_name_file']!='' and hasattr(objectcurrent,'dfile') and objectcurrent.dfile.name!=request.POST['patch_name_file']):
-                            objectcurrent.renamefile(setname=request.POST['patch_name_file'])
+                            utils.renamefile(objectcurrent.dfile,setname=request.POST['patch_name_file'])
+                        #is none element, create obj
+                        #if(idobjurl['paramslist'][3] == '0' and len(prevsaved) > 0):
+                            #objectcurrent.save()
+                        dictidsaveskey = {}
+                        if(dict(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]).has_key('links') == True):
+                            listmtmfork = dict(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['links'])
+                            for modelparamstr in prevsaved:
+                                if(many_and_foreign_dict.has_key(modelparamstr + '__prev_')):
+                                    typeokcomp = False
+                                    if(prevsaved[modelparamstr].find(',') != -1):
+                                        typeokcomp = utils.comparelist(prevsaved[modelparamstr].split(','), many_and_foreign_dict[modelparamstr + '__prev_'].split(','))
+                                    else:
+                                        typeokcomp = bool(prevsaved[modelparamstr] == many_and_foreign_dict[modelparamstr + '__prev_'])
+                                    if(typeokcomp): continue
+                                strnamemodul = dict(listmtmfork)[modelparamstr].split('__')[0]
+                                strnamemodel = dict(listmtmfork)[modelparamstr].split('__')[1]
+                                objids = request.POST[modelparamstr]
+                                if(objectcurrent.id == None and utils.ismtmfield(objectcurrent,modelparamstr) == True):
+                                    dictidsaveskey[modelparamstr] = importlib.import_module(strnamemodul).__getattribute__(strnamemodel).objects.filter(id__in=objids.split(','))
+                                    continue
+                                if(hasattr(objectcurrent,modelparamstr) and hasattr(objectcurrent.__getattribute__(modelparamstr),'model')):
+                                    objectcurrent.__setattr__(modelparamstr,importlib.import_module(strnamemodul).__getattribute__(strnamemodel).objects.filter(id__in=objids.split(',')))
+                                else:
+                                    objectcurrent.__setattr__(modelparamstr,importlib.import_module(strnamemodul).__getattribute__(strnamemodel).objects.get(id=objids))
+                            if(len(dictidsaveskey) > 0):
+                                objectcurrent.save()
+                                for nameparammtm in dictidsaveskey:
+                                    objectcurrent.__setattr__(nameparammtm,dictidsaveskey[nameparammtm])
                         objectcurrent.save()
+                        
                         objform = ''
             elif(idobjurl['paramslist'][4] != 'design'):
                 if(idobjurl['paramslist'][3] != '0'):
                     objmodel = object.objects.get(id=idobjurl['paramslist'][3])
                 else:
                     objmodel = object()
-                objform = objmodel.getform(idClass=idobjurl['paramslist'][1])
+                valuesparamsn = ()
+                if(request.POST.has_key('idobjparentobj') and request.POST['idobjparentobj'] != ''):
+                    valuesparamsn = (request.POST['nameprop'], request.POST['objects'])
+                objform = objmodel.getform(idClass=idobjurl['paramslist'][1], addvalue = valuesparamsn)
                 if(request.POST.has_key('onsubmit') and request.POST['onsubmit'] != '' and request.POST.has_key('params') == False):
                     objform = objmodel.getform(request.POST,idClass=idobjurl['paramslist'][1],save=True)
                     
@@ -362,7 +483,7 @@ class optionswitch:
                     objform = objmodel.getform(idClass=idobjurl['paramslist'][1],addinitial=addinit)
                 if(objform != ''):
                     objform.__setattr__('typesprops',objmodel.typesprops())
-                    objform.__setattr__('listnamelinkmodel',MYCONF.UPARAMS_MODELS.keys())
+                    #objform.__setattr__('listnamelinkmodel',MYCONF.UPARAMS_MODELS.keys())
             else: objectclass = uClasses.objects.get(id=idobjurl['paramslist'][1])
             if(objectclass != None and objectclass.codename == MYCONF.CLASS_NAME_MENU and idobjurl['paramslist'][4] == 'design'):
                 pref_nview = '_view'
@@ -525,13 +646,20 @@ def controller(request, object, dicturls):
         return HttpResponseRedirect('/' + dicturls['myadm'] + '/uclasses/link/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass']))
     elif(dictparams['nameurl'] == 'allclassfiltered'):
         return HttpResponseRedirect('/' + dicturls['myadm'] + '/uobjects/linkall/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass']) + '/classes/' + str(dictparams['objects']))
-    elif(dictparams['nameurl'] == 'urladdlinkobject' and dictparams['params'] != ''):
-        if(dictparams['params'] == 'ismodellink'):
-            classobj = uClasses.objects.get(id=dictparams['idclass'])
-            objectedits = classobj.getobjects(id=dictparams['idobjparentobj'])
-            objectedits[0].propertiesdict[dictparams['nameprop']] = dictparams['objects']
-            objectedits[0].save()
-            paramp = dicturls['class'] + '/class/' + str(dictparams['idclass']) + '/obj/' + str(dictparams['idobjparentobj'])
+    elif(dictparams['nameurl'] == 'urladdlinkobject'):
+        if(dictparams['params'] == 'ismodellinklink'):
+            linkobj = object.objects.get(id=dictparams['idobj'])
+            listmylinks = [(str(objlink.id), objlink) for objlink in linkobj.__getattribute__(dictparams['nameprop']).all() if str(objlink.id) not in dictparams['objectsno'].split(',')]
+            mylinks = [objlink[0] for objlink in listmylinks]
+            mylinkscheck = []
+            if(dictparams['objects'] != ''):
+                mylinkscheck.extend(dictparams['objects'].split(','))
+            if(dictparams['exclude'] == '1'):
+                objlinks = linkobj.__getattribute__(dictparams['nameprop']).exclude(id__in = mylinkscheck)
+            else:
+                objlinks = linkobj.__getattribute__(dictparams['nameprop']).filter(id__in = mylinks + mylinkscheck)
+            linkobj.save()
+            paramp = dicturls['class'] + '/model/' + dictparams['model'] + '/obj/' + str(dictparams['idobj'])
         else:
             linkobj = linksObjectsAll.objects.get(idobj=dictparams['idobj'], uclass=dictparams['idclass'])
             listmylinks = [(str(objlink.id), objlink) for objlink in linkobj.links.all() if str(objlink.id) not in dictparams['objectsno'].split(',')]
@@ -711,16 +839,26 @@ def get_url(request, *args, **kwargs):
             if(dicturls['paramslist'][6]=='permission' or dicturls['paramslist'][6]=='params'):
                 StrHeader += _gethclass(dicturls['paramslist'][5])
                 addition_men.append(('add rights', 'urladdlinkobject','classaddlinkm'))
-        #show objects standart model
         elif((dicturls['paramslist'][0]=='model' and dicturls['paramslist'][1] != '') or (dicturls['paramslist'][0] == 'action' and (request.POST.has_key('model') and request.POST['model'] != ''))):
-            mymodelconf = MYCONF.UPARAMS_MODELS[request.POST['model'] if (request.POST.has_key('model') and request.POST['model'] != '') else dicturls['paramslist'][1]]
-            strnamemodul = mymodelconf['model'].split('__')[0]
-            strnamemodel = mymodelconf['model'].split('__')[1]
+        #show objects standart model
+            mymodelconf = dicturls['paramslist'][1] if dicturls['paramslist'][4] != 'linksmodel' else dicturls['paramslist'][5]
+            if(request.POST.has_key('model') and request.POST['model'] != ''): mymodelconf = request.POST['model']
+            params_modul = mymodelconf.split('__')
+            strnamemodul = params_modul[0]
+            strnamemodel = params_modul[1]
             objwork = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
-            testobjworknames = mymodelconf['vlistcolumns']
+            if(dicturls['paramslist'][4] == 'linksmodel'):
+                    if(MYCONF.STRUCT_MODELS.has_key(dicturls['paramslist'][5])):
+                        testobjworknames = MYCONF.STRUCT_MODELS[dicturls['paramslist'][5]]['vlistcolumns']
+                    else:
+                        testobjworknames = ['id']
+            else:
+                testobjworknames = MYCONF.STRUCT_MODELS[mymodelconf]['vlistcolumns']
             proplistALL = {'name': testobjworknames,'namep': testobjworknames}
-            addition_men = [('add','urladd'), ('remove','urlremove'), ('edit','urledit')]
-            if(dicturls['paramslist'][2] == 'links'):
+            addition_men = []
+            if(dicturls['paramslist'][4] != 'linksmodel'):
+                addition_men = [('add','urladd'), ('remove','urlremove'), ('edit','urledit')]
+            if(dicturls['paramslist'][2] == 'links' or dicturls['paramslist'][4] == 'linksmodel'):
                 addition_men.append(('add rights', 'urladdlinkobject','classaddlinkm'))
             islinks = True
         elif((dicturls['paramslist'][0]=='class' and dicturls['paramslist'][1] != '') or (dicturls['paramslist'][0] == 'action' and (request.POST.has_key('idclass') and request.POST['idclass'] != ''))):
@@ -738,7 +876,7 @@ def get_url(request, *args, **kwargs):
             
             if(dicturls['paramslist'][0]=='class' and dicturls['paramslist'][1] != '' and dicturls['paramslist'][2] != 'obj'):
                 if(dicturls['paramslist'][1].isdigit()):
-                
+                    
                     objectclass = uClasses.objects.get(id=str(dicturls['paramslist'][1]))
                     if(objectclass.codename == MYCONF.CLASS_NAME_MENU):
                         addition_men.append(('move', 'urlmovemenuobj', 'classaddlinkm'))
@@ -752,10 +890,15 @@ def get_url(request, *args, **kwargs):
                     objwork = spaceheaders.objects.filter(uclass__codename=str(dicturls['paramslist'][1]))
             else:
                 if(dicturls['paramslist'][4] == 'linksmodel'):
-                    strnamemodul = dict(MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]])[dicturls['paramslist'][6]].split('__')[0]
-                    strnamemodel = dict(MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]])[dicturls['paramslist'][6]].split('__')[1]
+                    dictlistlink = {}
+                    for elemlink in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]]:
+                        if(isinstance(elemlink, tuple)):
+                            dictlistlink[elemlink[0]] = elemlink[1]
+                    strnamemodul = dictlistlink[dicturls['paramslist'][6]].split('__')[0]
+                    strnamemodel = dictlistlink[dicturls['paramslist'][6]].split('__')[1]
                     objwork = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
                     testobjworknames = (objwork().__dict__.keys())
+                    #переделай так что бы все бралось из STRUCT_MODELS по средствам UPARAMS_MODELS
                     proplistALL = {'name': testobjworknames,'namep': testobjworknames}
                     addition_men = [('add rights', 'urladdobjectform','classaddlinkm')]
                     islinks = True

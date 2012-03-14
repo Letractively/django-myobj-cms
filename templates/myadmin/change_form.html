@@ -56,10 +56,9 @@ var defhtninit = {
     ]
 }
 var arriselemfiles = { {% for key, value in myhtml.typesprops.items %}{% if value in myhtml.listnamelinkmodel %}'{{ key }}': '{{value}}',{% endif %}{% endfor %} };
-if(mysystem.urlparam['paramslist'][3] > 0) {
 for(var namekey in arriselemfiles) {
     $('#id_'+namekey).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/model/' + arriselemfiles[namekey] + '/links/class/' + mysystem.urlparam['paramslist'][1] + '/obj/' + mysystem.urlparam['paramslist'][3] + '/prop/' + namekey + '">ids model ' + arriselemfiles[namekey] + '</a>');
-}}
+}
 
 {% for key, value in myhtml.typesprops.items %}
 {% if value == "html" %}
@@ -104,8 +103,9 @@ var dictparammodel = {
 }
 $(document.forms['moref']).find('input[name$="__prev_"]').each(function() {
     nameelem = $(this).attr('name').substr(0,$(this).attr('name').indexOf('__prev_'));
-    arrelemmenlink = dictparammodel[nameelem].split('__');
-    $('#id_'+nameelem).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/class/'+ mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/'+arrelemmenlink[0]+'/'+arrelemmenlink[1]+'">links</a>');
+    sep = (mysystem.urlparam['paramslist'][0] == 'class')?'__':'___';
+    arrelemmenlink = dictparammodel[nameelem].split(sep);
+    $('#id_'+nameelem).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/' + mysystem.urlparam['paramslist'][0] + '/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/'+arrelemmenlink[0]+'/'+arrelemmenlink[1]+'">links</a>');
 });
 
 if($('#id_isbd_tamplate_system').is('input')) {
