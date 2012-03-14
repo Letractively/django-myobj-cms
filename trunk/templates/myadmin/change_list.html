@@ -243,13 +243,26 @@ $('#menelem a').live('click',
         }
         else if(mysystem.urlparam['paramslist'][0]=='model') {
             listchangespace.formactparam.model.value = mysystem.urlparam['paramslist'][1];
-            listchangespace.formactparam.params.value = 'ismodellink';
             listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][4];
             listchangespace.formactparam.idobjparentobj.value = mysystem.urlparam['paramslist'][6];
             listchangespace.formactparam.nameprop.value = mysystem.urlparam['paramslist'][8];
+            if(mysystem.urlparam['paramslist'][4] == 'linksmodel') {
+                listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][5];
+                listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] +'/model/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/';
+            }
+            else {
+                if(mysystem.urlparam['paramslist'][2] != 'links' && mysystem.urlparam['paramslist'][2] != '') {
+                    listchangespace.formactparam.params.value = 'ismodellinklink';
+                    listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][3];
+                    listchangespace.formactparam.nameprop.value = mysystem.urlparam['paramslist'][6];
+                }
+                if(listchangespace.formactparam.nameurl.value == 'urladdlinkobject') {
+                    listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/class/'+ listchangespace.formactparam.idclass.value +'/obj/'+ listchangespace.formactparam.idobjparentobj.value +'/';
+                }
+            }
         }
-        if(listchangespace.formactparam.nameurl.value=='allclassfiltered' || listchangespace.formactparam.nameurl.value=='csvimp' || listchangespace.formactparam.nameurl.value=='urlmovemenuobj' || listchangespace.formactparam.nameurl.value=='urlremove' || listchangespace.formactparam.nameurl.value=='urladdlinkclass' || listchangespace.formactparam.nameurl.value=='urladdlinkobject') {
-            if(listchangespace.formactparam.objects.value == '' && (listchangespace.formactparam.nameurl.value!='urladdlinkclass' & listchangespace.formactparam.nameurl.value!='urladdlinkobject')) {
+        if(listchangespace.formactparam.nameurl.value=='allclassfiltered' || listchangespace.formactparam.nameurl.value=='csvimp' || listchangespace.formactparam.nameurl.value=='urlmovemenuobj' || listchangespace.formactparam.nameurl.value=='urlremove' || listchangespace.formactparam.nameurl.value=='urladdlinkclass') {
+            if(listchangespace.formactparam.objects.value == '' && (listchangespace.formactparam.nameurl.value!='urladdlinkclass')) {
                 alert('no selected objects');
                 return false;
             }

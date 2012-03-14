@@ -4,6 +4,7 @@ from myobj import utils
 from django.forms.models import modelformset_factory
 from django import forms
 from django.utils import importlib
+from django.contrib.auth.models import User
 #propertiesObject
 class objProperties(models.Model):
     name = models.CharField(max_length=255)
@@ -116,9 +117,6 @@ class systemObjLines(AbsBaseLines):
 class myObjLines(AbsBaseLines):
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjlines'
-#class newHeadersLines(AbsBaseLines):
-    #class Meta:
-        #db_table = MYCONF.PROJECT_NAME + '_ucms_newHeadersLines'
 
 class linksObjectsAll(models.Model):
     idobj = models.IntegerField(blank=False)
@@ -132,12 +130,13 @@ class linksObjectsAll(models.Model):
 class AbsBaseHeaders(models.Model):
     _flagAutoAddedLinks = True
     uclass = models.ForeignKey(uClasses) #как может быть объект без класса ?)_
-    name = models.CharField(max_length=255)
     __propertiesdict = {}
     __typespropsdict = {}
     #modelandtuple = (modul,model) or QuerySet
     def setlinks(self,nameparam,modelandtupleorqueryset,objids=None):
         if(isinstance(modelandtupleorqueryset,tuple)):
+            if(self.id == None and utils.ismtmfield(self,nameparam) == True):
+                return importlib.import_module(modelandtupleorqueryset[0]).__getattribute__(modelandtupleorqueryset[1]).objects.filter(id__in=objids.split(','))
             if(hasattr(self,nameparam) and hasattr(self.__getattribute__(nameparam),'model')):
                 if(objids == ''): self.__getattribute__(nameparam).clear()
                 else: self.__setattr__(nameparam,importlib.import_module(modelandtupleorqueryset[0]).__getattribute__(modelandtupleorqueryset[1]).objects.filter(id__in=objids.split(',')))
@@ -146,25 +145,19 @@ class AbsBaseHeaders(models.Model):
                 else: self.__setattr__(nameparam,importlib.import_module(modelandtupleorqueryset[0]).__getattribute__(modelandtupleorqueryset[1]).objects.get(id=objids))
         else:
             self.__setattr__(nameparam,modelandtupleorqueryset)
-    def getlinks(self,name,listid=True):
-            elements = None
-            if(hasattr(self,name)):
-                elemvaluempar = self.__getattribute__(name)
-                if(hasattr(elemvaluempar,'model')):
-                    elements = ('' if (elemvaluempar.count() == 0) else (",".join(([str(dictp['id']) for dictp in elemvaluempar.values('id')])) if listid else elemvaluempar ))
-                else:
-                    elements = ('' if (hasattr(elemvaluempar,'id') == False) else (str(elemvaluempar.id) if listid else elemvaluempar ))
-                
-            return elements
-            
-    def getform(self,postgetp={},idClass=None,save=False,addinitial = {}):
+        return False
+        
+    def getlinks(objectedit,name,listid=True):
+            return utils.getlinks(objectedit,name,listid)
+        
+    def getform(self,postgetp={},idClass=None,save=False,addinitial = {}, addvalue = ()):
         if(self.id == None):
             objectclass = uClasses.objects.get(id=idClass)
             self.uclass = objectclass
             namespace = objectclass.get_tablespace_display()
         else:
             namespace = self.uclass.get_tablespace_display()
-        fields_form = ['name'] + [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace] if not isinstance(nameparam,tuple)]
+        fields_form = [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace] if not isinstance(nameparam,tuple)]
         
         headerspace = self.uclass.getspace()
         ObjFormSet = modelformset_factory(headerspace, fields=tuple(fields_form))
@@ -211,7 +204,43 @@ class AbsBaseHeaders(models.Model):
             
             for nameparmodel in fields_form:
                 dictproperties[nameparmodel] = self.__getattribute__(nameparmodel)
-        
+        if(len(addvalue) > 0):
+            dictproperties[addvalue[0]] = addvalue[1]
+        if(len(addinitial) > 0):
+            for nameparam in addinitial:
+                if(isinstance(addinitial[nameparam],dict)):
+                    strnamemodul = dict(listmtmfork)[nameparam].split('__')[0]
+                    strnamemodel = dict(listmtmfork)[nameparam].split('__')[1]
+                    mymodel = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
+                    #links
+                    ismtm = False
+                    try:
+                        #mtm
+                        if(hasattr(self.__getattribute__(nameparam),'model')):
+                            ismtm = True
+                        #link mtm None
+                    except ValueError:
+                        ismtm = True
+                    #link fj
+                    except :
+                        ismtm = False
+                    if(ismtm == True and addinitial[nameparam]['objects']!= ''):
+                        myobjscheck = addinitial[nameparam]['objects'].split(',')
+                        myobjschecknon = []
+                        if(addinitial[nameparam]['objectsno'] != ''):
+                            myobjschecknon = addinitial[nameparam]['objectsno'].split(',')
+                        if(addinitial[nameparam]['exclude'] == '1'):
+                            objectdeleting = mymodel.objects.exclude(id__in = myobjschecknon)
+                        else:
+                            objectdeleting = mymodel.objects.filter(id__in = myobjscheck)
+                        
+                        dictproperties[nameparam] = ",".join([str(dictp['id']) for dictp in objectdeleting.values('id')])
+                    else:
+                        dictproperties[nameparam] = addinitial[nameparam]['idobj']
+                    del mymodel, ismtm
+                #no link
+                else:
+                    dictproperties[nameparam] = addinitial[nameparam]
         objform = formset.form(dictproperties)
         if(self.id == None and len(postgetp) == 0):
             objform = formset.form(initial=dictproperties)
@@ -245,44 +274,8 @@ class AbsBaseHeaders(models.Model):
                 else:
                     objform.fields[elemparammodel] = forms.CharField(widget=forms.HiddenInput,required = False)
         #save
+        dictidsaveskey = {}
         if(objform.is_valid() and len(postgetp) > 0 and save == True):
-            self.save()
-        if(self.id != None and len(addinitial) > 0):
-            for nameparam in addinitial:
-                if(isinstance(addinitial[nameparam],dict)):
-                    strnamemodul = dict(listmtmfork)[nameparam].split('__')[0]
-                    strnamemodel = dict(listmtmfork)[nameparam].split('__')[1]
-                    mymodel = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
-                    #links
-                    ismtm = False
-                    try:
-                        #mtm
-                        if(hasattr(self.__getattribute__(nameparam),'model')):
-                            ismtm = True
-                        #link mtm None
-                    except ValueError:
-                        ismtm = True
-                    #link fj
-                    except DoesNotExist:
-                        ismtm = False
-                    if(ismtm == True and addinitial[nameparam]['objects']!= ''):
-                        myobjscheck = addinitial[nameparam]['objects'].split(',')
-                        myobjschecknon = []
-                        if(addinitial[nameparam]['objectsno'] != ''):
-                            myobjschecknon = addinitial[nameparam]['objectsno'].split(',')
-                        if(addinitial[nameparam]['exclude'] == '1'):
-                            objectdeleting = mymodel.objects.exclude(id__in = myobjschecknon)
-                        else:
-                            objectdeleting = mymodel.objects.filter(id__in = myobjscheck)
-                        
-                        dictproperties[nameparam] = ",".join([str(dictp['id']) for dictp in objectdeleting.values('id')])
-                    else:
-                        dictproperties[nameparam] = addinitial[nameparam]['idobj']
-                    del mymodel, ismtm
-                #no link
-                else:
-                    dictproperties[nameparam] = addinitial[nameparam]
-        if(self.id != None):
             for modelparamstr in prevsaved:
                 if(many_and_foreign_dict.has_key(modelparamstr + '__prev_')):
                     typeokcomp = False
@@ -293,7 +286,14 @@ class AbsBaseHeaders(models.Model):
                     if(typeokcomp): continue
                 strnamemodul = dict(listmtmfork)[modelparamstr].split('__')[0]
                 strnamemodel = dict(listmtmfork)[modelparamstr].split('__')[1]
-                self.setlinks(modelparamstr,(strnamemodul,strnamemodel),prevsaved[modelparamstr])
+                
+                linksobj = self.setlinks(modelparamstr,(strnamemodul,strnamemodel),prevsaved[modelparamstr])
+                if(linksobj != False):
+                    dictidsaveskey[modelparamstr] = linksobj
+            if(len(dictidsaveskey) > 0):
+                self.save()
+                for nameparammtm in dictidsaveskey:
+                    self.setlinks(nameparammtm,modelandtupleorqueryset=dictidsaveskey[nameparammtm])
             self.save()
         
         return objform
@@ -436,39 +436,35 @@ class systemObjHeaders(AbsBaseHeaders):
     lines = models.ManyToManyField(systemObjLines,blank=True) #без строк можно создать
     
     #user params
-    sort = models.PositiveSmallIntegerField(blank=True,null=True,default=0)
+    name = models.CharField(max_length=255)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_systemobjheaders'
 class myObjHeaders(AbsBaseHeaders):
     lines = models.ManyToManyField(myObjLines,blank=True) #без строк можно создать
     #user params
+    name = models.CharField(max_length=255)
     sort = models.IntegerField(blank=True,null=True,default=0)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjheaders'
 
 ###  example new space
-#class testmtm(models.Model):
-    #name = models.CharField(max_length=50)
-    #DateField = models.DateField()
-#class testfk(models.Model):
-    #name = models.CharField(max_length=50)
-    #DateField = models.DateField()
-    #FloatField = models.FloatField()
-
+#class newHeadersLines(AbsBaseLines):
+    #class Meta:
+        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheadersines'
 #class newHeaders(AbsBaseHeaders):
     #lines = models.ManyToManyField(myObjLines,blank=True)
-    #mtmp = models.ManyToManyField(testmtm,blank=True)
-    #fkp = models.ForeignKey(testfk)
+    
+    #user params
+    #name = models.CharField(max_length=255)
     #class Meta:
-        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheaderslines'
+        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheaders'
 
 # MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
 TABLE_SPACE = {
     1: (myObjHeaders, myObjLines), #(1, 'my') MYSPACE_TABLES_CHOICES
     2: (systemObjHeaders, systemObjLines), #(2, 'system') MYSPACE_TABLES_CHOICES
-    #add your space #3: (newHeaders, newHeadersLines), #(3, 'mynewspace') MYSPACE_TABLES_CHOICES
+    #add your space #3: (newHeaders, newHeadersLines)
 }
-
 def get_space_model(idnameclass, getlines): # getlines is False then return Headers
     if(str(idnameclass).isdigit()):
         objclassmodel = uClasses.objects.get(id=str(idnameclass))
@@ -479,29 +475,11 @@ def get_space_model(idnameclass, getlines): # getlines is False then return Head
 class systemUploadsFiles(models.Model):
     name = models.CharField(max_length=255)
     dfile = models.FileField(upload_to="ucmsfiles")
-    def renamefile(self,setname='',isrand=False):
-        import os
-        import random
-        stmp = 'qwertyuiasdfghjzxc234'
-        randname = ''.join(random.sample(stmp,len(stmp)))
-        newpath = ''
-        oldpath = self.dfile.path
-        tuplepath = os.path.split(oldpath)
-        if(setname!=''):
-            tuplepath = os.path.split(setname)
-            if(tuplepath[0]!=''):
-                self.dfile.field.upload_to = tuplepath[0]
-            newpath = os.path.join(tuplepath[0], tuplepath[1])
-        elif(isrand == True): newpath = os.path.join(tuplepath[0], randname + '.' + tuplepath[1].split('.')[1])
-        else:
-            return False
-        self.dfile.save(newpath,self.dfile)
-        #os.remove(oldpath)
     def save(self, *args, **kwargs):
         isnewelem = False
         if(self.id == None): isnewelem = True
         super(systemUploadsFiles, self).save(*args, **kwargs)
         if(isnewelem):
-            self.renamefile(isrand=True)
+            utils.renamefile(objfile=self.dfile,isrand=True)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_uploadfiles'
