@@ -1,1 +1,0 @@
-﻿from django.contrib import adminfrom mysite.myobj.models import uClasses, objPropertiesadmin.site.register(uClasses)admin.site.register(objProperties)
