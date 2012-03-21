@@ -119,7 +119,7 @@ class optionswitch:
                 ismenu = True
             proplist['name'] = proplist['namep'] = MYCONF.UPARAMS_MYSPACES[objectclass.get_tablespace_display()]['vlistcolumns']
         elif(islinks == True):
-            if(dicturls['paramslist'][0] == 'linkall'): proplist['namep'].append('uclass')
+            if(dicturls['paramslist'][0] == 'linkall'): proplist['namep'] = ['id','uclass']
         argsord = []
         sortnamep = '-id'
         if(request.POST.has_key('order') and request.POST['order'] != ''): sortnamep = request.POST['order']
@@ -275,7 +275,6 @@ class optionswitch:
                 pagination = utils.pagination(indexpage,countlinks,startlenobjects,MYCONF.COUNTPAGEELEMENTSLEFT,urlpage)
         
         htmltr = '<table>' + optiontop + htmltr + '</table>' + pagination
-        del proplist
         return htmltr
     def change_form(self, object, request, idobjurl):
         
@@ -672,7 +671,11 @@ def controller(request, object, dicturls):
                 linkobj.links = linksObjectsAll.objects.filter(id__in = mylinks + mylinkscheck)
             linkobj.save()
             
-            paramp = 'uclasses/link/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass'])
+            objectclass = uClasses.objects.get(id=dictparams['params'])
+            if(objectclass.codename == MYCONF.CLASS_NAME_GROUP):
+                paramp = 'uobjects/class/' + str(dictparams['idclass'])
+            else:
+                paramp = 'uclasses/link/' + str(dictparams['idobj']) + '/class/' + str(dictparams['idclass'])
     elif(dictparams['nameurl'] == 'urladdlinkclass'):
         objmodel = uClasses.objects.get(id=dictparams['idobj'])
         checklist = dictparams['objects'].split(',') if dictparams['objects'] != '' else []
@@ -837,7 +840,7 @@ def get_url(request, *args, **kwargs):
             addition_men.append(('set link', 'urladdlinkobject','classaddlinkm'))
             if(dicturls['paramslist'][6]=='permission' or dicturls['paramslist'][6]=='params'):
                 StrHeader += _gethclass(dicturls['paramslist'][5])
-                addition_men.append(('add rights', 'urladdlinkobject','classaddlinkm'))
+                addition_men = [('add rights', 'urladdlinkobject','classaddlinkm')]
         elif((dicturls['paramslist'][0]=='model' and dicturls['paramslist'][1] != '') or (dicturls['paramslist'][0] == 'action' and (request.POST.has_key('model') and request.POST['model'] != ''))):
         #show objects standart model
             mymodelconf = dicturls['paramslist'][1] if dicturls['paramslist'][4] != 'linksmodel' else dicturls['paramslist'][5]

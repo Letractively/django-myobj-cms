@@ -96,7 +96,7 @@ listtopmen = [
     ),
     (
         'sys',
-        [('model', [(namemodel, '/' + nameadmin_patch + '/myobj/uobjects/model/' + namemodel) for namemodel in STRUCT_MODELS.keys()], ''),],
+        [('model', [(namemodel, '/' + nameadmin_patch + '/myobj/uobjects/model/' + namemodel) for namemodel in STRUCT_MODELS.keys()], ''), ('permission','/' + nameadmin_patch + '/myobj/uobjects/class/group_system')],
     )
 ]
 #('add','/' + nameadmin_patch + '/uobjects/model/')

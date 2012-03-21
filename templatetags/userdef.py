@@ -27,7 +27,11 @@ def handle(value, paramscms):
     if(blokview == True and len(handle.handleobj[value]['grouplist']) != 0): return ''
     viewobj = handle.handleobj[value]['view']
     #no view have handle
-    if(viewobj == False): return ''
+    if(viewobj == False):
+        del handle.countiter
+        del handle.handlesnav
+        del handle.handleobj
+        return ''
     templateobj = handle.handleobj[value]['template']
     
     namemodul = viewobj.propertiesdict['importmodul_system']
