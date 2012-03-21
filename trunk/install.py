@@ -6,8 +6,6 @@ PROPN = [
 PROPL = [
     ['codename_system',       'codename_system','',1,'','','False',''],
     [MYCONF.PROP_PATCH_TEMPLATE_SYS, MYCONF.PROP_PATCH_TEMPLATE_SYS,'',1,'','','False',''],
-    [MYCONF.PROP_ISBD_TEMPLATE_SYS, MYCONF.PROP_ISBD_TEMPLATE_SYS,'',11,'','','False',''],
-    [MYCONF.PROP_HTML_TEMPLATE_SYS, MYCONF.PROP_HTML_TEMPLATE_SYS,'',2,'','','False',''],
     ['importmodul_system',    'importmodul_system','import modul system',1,'','','True',''],
     ['nameimport_view_system','nameimport_view_system','name import view system',1,'','','False',''],
     ['description_system',    'description_system','description system',2,'','','False',''],

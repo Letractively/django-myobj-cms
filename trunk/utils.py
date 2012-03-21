@@ -20,13 +20,6 @@ def safe_int(val):
         return int(val)
     except (TypeError, ValueError):
         return 0
-def isthereattr(func, nameattr):
-    try:
-        func.__getattribute__(nameattr)
-    except AttributeError:
-        return False
-    else:
-        return True
 
 def pagination(indexpage,countlinks,startlenobjects,leftrcount,urlp):
     linksp = ''
