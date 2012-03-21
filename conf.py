@@ -5,24 +5,26 @@ PROJECT_NAME = (settings.ROOT_URLCONF).split('.')[0]
 MYSPACE_TABLES_CHOICES = (
     (1, 'my'),
     (2, 'system'),
-    #(3, 'newheaders'),
+    ### START EXAMP ###
+    #(3, 'exampleheaders'),
+    ### END EXAMP ###
 )
 
 UPARAMS_MYSPACES = {
-    'my': ['name','sort'],
-    'system': ['name','sort'],
-    #'newheaders': ['name']
+    'my': {'vlistcolumns': ['id','name'], 'editcolumns': ['name','sort']},
+    'system': {'vlistcolumns': ['id','name'], 'editcolumns': ['name','sort']},
+    ### START EXAMP ###
+    #'exampleheaders': {'vlistcolumns': ['id','name'], 'editcolumns': ['name',('locations','myobj.models__examplelocationhome'),('sales','myobj.models__examplesellers')]},
+    ### END EXAMP ###
 }
 
 STRUCT_MODELS = {
-    'myobj.models__systemUploadsFiles': 
-        {'editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']},
-}
-
-UPARAMS_LIST_COLUMNS_MYSPACES = {
-    'my': [],
-    'system': [],
-    #'newheaders': [''],
+    ### START EXAMP ###
+    'myobj.models__examplelocationhome':
+        {'editcolumns': ['name','locat_chois'], 'vlistcolumns': ['id','name','locat_chois'], 'links': [('aggregation', 'myobj.models__examplelocationhome')]},
+    'myobj.models__examplesellers':
+        {'editcolumns': ['name','description'], 'vlistcolumns': ['id','name'], 'links': [('locations', 'myobj.models__examplelocationhome')]},
+    ### END EXAMP ###
 }
 
 FORMS_ELEMENT_EDIT = {
@@ -121,8 +123,8 @@ TYPES_DEF_CLASSES = {
 {
     'namenormal': 'Objects', 
     'userui': sntui + [('links', 'urllinksobj', 'classlinkm')], 
-    'name': ['id', None, ('uclass','name')], 
-    'namep': ['id', None, u'name class'], 
+    'name': [], 
+    'namep': [], 
     'namecont': u'Objects'
 }
 }
@@ -133,8 +135,6 @@ CLASS_NAME_GROUP = 'group_system'
 CLASS_NAME_HANDLE = 'handle_system'
 PROP_NAME_PARENT_MENU = 'parent_elnav_system'
 PROP_PATCH_TEMPLATE_SYS = 'patch_tamplate_system'
-PROP_ISBD_TEMPLATE_SYS = 'isbd_tamplate_system'
-PROP_HTML_TEMPLATE_SYS = 'html_tamplate_system'
 CLASS_PARAMSNAV_SYS = 'params_system'
 
 def vi_proc(request):

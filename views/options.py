@@ -117,10 +117,9 @@ class optionswitch:
             objectclass = uClasses.objects.get(id=dicturls['paramslist'][1])
             if(objectclass.codename == MYCONF.CLASS_NAME_MENU):
                 ismenu = True
-            proplist['name'][1:2] = proplist['namep'][1:2] = MYCONF.UPARAMS_LIST_COLUMNS_MYSPACES[objectclass.get_tablespace_display()]
+            proplist['name'] = proplist['namep'] = MYCONF.UPARAMS_MYSPACES[objectclass.get_tablespace_display()]['vlistcolumns']
         elif(islinks == True):
-            proplist['name'] = [elem for elem in proplist['name'] if elem != None]
-            proplist['namep'] = [elem for elem in proplist['namep'] if elem != None]
+            if(dicturls['paramslist'][0] == 'linkall'): proplist['namep'].append('uclass')
         argsord = []
         sortnamep = '-id'
         if(request.POST.has_key('order') and request.POST['order'] != ''): sortnamep = request.POST['order']
@@ -243,7 +242,7 @@ class optionswitch:
                 if(dicturls['paramslist'][4] != 'linksmodel'):
                     modelnamelink = dicturls['paramslist'][1]
                 elif(dicturls['paramslist'][4] == 'linksmodel' and dicturls['paramslist'][0] == 'class'):
-                    modelnamelink = dict([nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]] if isinstance(nameparam,tuple)])[dicturls['paramslist'][6]]
+                    modelnamelink = dict([nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]]['editcolumns'] if isinstance(nameparam,tuple)])[dicturls['paramslist'][6]]
                 urlactnone = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/model/' + modelnamelink + '/obj/0'
                 del modelnamelink
                 inhtml = ''
@@ -276,6 +275,7 @@ class optionswitch:
                 pagination = utils.pagination(indexpage,countlinks,startlenobjects,MYCONF.COUNTPAGEELEMENTSLEFT,urlpage)
         
         htmltr = '<table>' + optiontop + htmltr + '</table>' + pagination
+        del proplist
         return htmltr
     def change_form(self, object, request, idobjurl):
         
@@ -483,7 +483,6 @@ class optionswitch:
                     objform = objmodel.getform(idClass=idobjurl['paramslist'][1],addinitial=addinit)
                 if(objform != ''):
                     objform.__setattr__('typesprops',objmodel.typesprops())
-                    #objform.__setattr__('listnamelinkmodel',MYCONF.UPARAMS_MODELS.keys())
             else: objectclass = uClasses.objects.get(id=idobjurl['paramslist'][1])
             if(objectclass != None and objectclass.codename == MYCONF.CLASS_NAME_MENU and idobjurl['paramslist'][4] == 'design'):
                 pref_nview = '_view'
@@ -726,7 +725,7 @@ def controller(request, object, dicturls):
             pname = '_'+classobj.codename
             colscsv = [objprop.codename for objprop in classobj.properties.all()]
             colscsv.append('headerp__name')
-            colscsv.extend(['headerp__' + paramheader for paramheader in MYCONF.UPARAMS_MYSPACES[classobj.get_tablespace_display()]])
+            colscsv.extend(['headerp__' + paramheader for paramheader in MYCONF.UPARAMS_MYSPACES[classobj.get_tablespace_display()]['editcolumns']])
             objects_export = classobj.getobjects(id__in = listidobjcts)
         
         response = HttpResponse(mimetype='text/csv')
@@ -891,14 +890,13 @@ def get_url(request, *args, **kwargs):
             else:
                 if(dicturls['paramslist'][4] == 'linksmodel'):
                     dictlistlink = {}
-                    for elemlink in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]]:
+                    for elemlink in MYCONF.UPARAMS_MYSPACES[dicturls['paramslist'][5]]['editcolumns']:
                         if(isinstance(elemlink, tuple)):
                             dictlistlink[elemlink[0]] = elemlink[1]
                     strnamemodul = dictlistlink[dicturls['paramslist'][6]].split('__')[0]
                     strnamemodel = dictlistlink[dicturls['paramslist'][6]].split('__')[1]
                     objwork = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
                     testobjworknames = (objwork().__dict__.keys())
-                    #переделай так что бы все бралось из STRUCT_MODELS по средствам UPARAMS_MODELS
                     proplistALL = {'name': testobjworknames,'namep': testobjworknames}
                     addition_men = [('add rights', 'urladdobjectform','classaddlinkm')]
                     islinks = True

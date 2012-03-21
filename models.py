@@ -40,7 +40,7 @@ class uClasses(models.Model):
         self.objectsqueryset = modelheader.objects.filter(**newkwargs).select_related()
         tempprop = self.properties.all()
         templinesdict = {}
-        if(len(namesvprop) > 0):
+        if(len(namesvprop) > 0 and self.objectsqueryset.count() > 0):
             okparamfilt = [str(propobj.id) for propobj in tempprop if propobj.codename in namesvprop]
             nameheadermodel = self.objectsqueryset[0].__class__.__name__.lower()
             dictparamf = {}
@@ -157,16 +157,16 @@ class AbsBaseHeaders(models.Model):
             namespace = objectclass.get_tablespace_display()
         else:
             namespace = self.uclass.get_tablespace_display()
-        fields_form = [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace] if not isinstance(nameparam,tuple)]
+        fields_form = [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace]['editcolumns'] if not isinstance(nameparam,tuple)]
         
         headerspace = self.uclass.getspace()
         ObjFormSet = modelformset_factory(headerspace, fields=tuple(fields_form))
         formset = ObjFormSet(queryset=headerspace.objects.none())
         
-        ObjFormSetTestf = modelformset_factory(headerspace, fields=tuple([nameparam[0] for nameparam in MYCONF.UPARAMS_MYSPACES[namespace] if isinstance(nameparam,tuple)]))
+        ObjFormSetTestf = modelformset_factory(headerspace, fields=tuple([nameparam[0] for nameparam in MYCONF.UPARAMS_MYSPACES[namespace]['editcolumns'] if isinstance(nameparam,tuple)]))
         formsetsearchf = ObjFormSetTestf(queryset=headerspace.objects.none())
         many_and_foreign_dict = {}
-        listmtmfork = [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace] if isinstance(nameparam,tuple)]
+        listmtmfork = [nameparam for nameparam in MYCONF.UPARAMS_MYSPACES[namespace]['editcolumns'] if isinstance(nameparam,tuple)]
         jsparamht = {}
         for nameparammodel in listmtmfork:
             valuelink = self.getlinks(nameparammodel[0])
@@ -437,6 +437,7 @@ class systemObjHeaders(AbsBaseHeaders):
     
     #user params
     name = models.CharField(max_length=255)
+    sort = models.IntegerField(blank=True,null=True,default=0)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_systemobjheaders'
 class myObjHeaders(AbsBaseHeaders):
@@ -447,31 +448,6 @@ class myObjHeaders(AbsBaseHeaders):
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjheaders'
 
-###  example new space
-#class newHeadersLines(AbsBaseLines):
-    #class Meta:
-        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheadersines'
-#class newHeaders(AbsBaseHeaders):
-    #lines = models.ManyToManyField(myObjLines,blank=True)
-    
-    #user params
-    #name = models.CharField(max_length=255)
-    #class Meta:
-        #db_table = MYCONF.PROJECT_NAME + '_ucms_newheaders'
-
-# MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
-TABLE_SPACE = {
-    1: (myObjHeaders, myObjLines), #(1, 'my') MYSPACE_TABLES_CHOICES
-    2: (systemObjHeaders, systemObjLines), #(2, 'system') MYSPACE_TABLES_CHOICES
-    #add your space #3: (newHeaders, newHeadersLines)
-}
-def get_space_model(idnameclass, getlines): # getlines is False then return Headers
-    if(str(idnameclass).isdigit()):
-        objclassmodel = uClasses.objects.get(id=str(idnameclass))
-    else:
-        objclassmodel = uClasses.objects.get(codename=str(idnameclass))
-    typlespace = TABLE_SPACE.get(objclassmodel.tablespace, False)
-    return typlespace[1 if getlines else 0]
 class systemUploadsFiles(models.Model):
     name = models.CharField(max_length=255)
     dfile = models.FileField(upload_to="ucmsfiles")
@@ -483,3 +459,47 @@ class systemUploadsFiles(models.Model):
             utils.renamefile(objfile=self.dfile,isrand=True)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_uploadfiles'
+
+### START example models #########################################################################################################################
+#TYPELOCATION_CHOICES = (
+#    (1, 'country'),
+#    (2, 'sity'),
+#)
+#class examplelocationhome(models.Model):
+#    name = models.CharField(max_length=25)
+#    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
+#    aggregation = models.ManyToManyField("self",blank=True)
+#    class Meta:
+#        db_table = MYCONF.PROJECT_NAME + '_ucms_examplelocationhome'
+#class examplesellers(models.Model):
+#    name = models.CharField(max_length=25)
+#    description = models.CharField(max_length=255)
+#    locations = models.ManyToManyField(examplelocationhome)
+#    class Meta:
+#        db_table = MYCONF.PROJECT_NAME + '_ucms_examplesellers'
+#class exampleHeadersLines(AbsBaseLines):
+#    class Meta:
+#        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaderslines'
+#class exampleHeaders(AbsBaseHeaders):
+#    lines = models.ManyToManyField(exampleHeadersLines,blank=True)
+#    
+#    name = models.CharField(max_length=25)
+#    locations = models.ManyToManyField(examplelocationhome,blank=True)
+#    sales = models.ForeignKey(examplesellers)
+#    class Meta:
+#        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaders'
+### END example models #########################################################################################################################
+
+# MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
+TABLE_SPACE = {
+    1: (myObjHeaders, myObjLines), #(1, 'my') MYSPACE_TABLES_CHOICES
+    2: (systemObjHeaders, systemObjLines), #(2, 'system') MYSPACE_TABLES_CHOICES
+    #3: (exampleHeaders, exampleHeadersLines), #add your space #3: (exampleHeaders, exampleHeadersLines),
+}
+def get_space_model(idnameclass, getlines): # getlines is False then return Headers
+    if(str(idnameclass).isdigit()):
+        objclassmodel = uClasses.objects.get(id=str(idnameclass))
+    else:
+        objclassmodel = uClasses.objects.get(codename=str(idnameclass))
+    typlespace = TABLE_SPACE.get(objclassmodel.tablespace, False)
+    return typlespace[1 if getlines else 0]

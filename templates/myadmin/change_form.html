@@ -108,19 +108,6 @@ $(document.forms['moref']).find('input[name$="__prev_"]').each(function() {
     $('#id_'+nameelem).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/' + mysystem.urlparam['paramslist'][0] + '/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/'+arrelemmenlink[0]+'/'+arrelemmenlink[1]+'">links</a>');
 });
 
-if($('#id_isbd_tamplate_system').is('input')) {
-    var varcheckbox = $('#id_isbd_tamplate_system');
-    var htmltemp = $('#id_html_tamplate_system').parent();
-    if($('#id_isbd_tamplate_system').is(':checked') == true) {
-        htmltemp.removeClass('vishidden');
-    }
-    else {
-        htmltemp.addClass('vishidden');
-    }
-    $(varcheckbox).click(function() {
-        htmltemp.toggleClass('vishidden');
-    });
-}
 </script>
 
 
