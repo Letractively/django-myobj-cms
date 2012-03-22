@@ -119,7 +119,7 @@ class optionswitch:
                 ismenu = True
             proplist['name'] = proplist['namep'] = MYCONF.UPARAMS_MYSPACES[objectclass.get_tablespace_display()]['vlistcolumns']
         elif(islinks == True):
-            if(dicturls['paramslist'][0] == 'linkall'): proplist['namep'] = ['id','uclass']
+            if(dicturls['paramslist'][0] == 'linkall'): proplist['name'] = proplist['namep'] = ['id','name','uclass']
         argsord = []
         sortnamep = '-id'
         if(request.POST.has_key('order') and request.POST['order'] != ''): sortnamep = request.POST['order']
@@ -914,7 +914,7 @@ def get_url(request, *args, **kwargs):
             if(dicturls['class'] == 'uobjects'):
                 if(dicturls['paramslist'][4]=='design'):
                     requrl = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/' + '/'.join([str(elurl) for elurl in dicturls['paramslist'][0:5]])
-                if(dicturls['paramslist'][0]=='model'):
+                elif(dicturls['paramslist'][0]=='model'):
                     requrl = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/model/' + dicturls['paramslist'][1]
                 else:
                     requrl = '/' + dicturls['myadm'] + '/' + dicturls['class'] + '/class/' + dicturls['paramslist'][1] + ( ('/obj/' + dicturls['paramslist'][3]) if dicturls['paramslist'][3]!='0' else '' )
