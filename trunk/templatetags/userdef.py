@@ -1,4 +1,5 @@
 ﻿from django.template.loader import get_template
+from django.http import HttpResponseRedirect
 from django.conf import settings
 from myobj import conf as MYCONF
 from django.template import Context, Template
@@ -43,6 +44,9 @@ def handle(value, paramscms):
             linkfunk = getmodul.__getattribute__(nameview)
         
             datacontext = linkfunk(**paramscms)
+            if(paramscms['HttpResponseRedirect']['link'] == None and isinstance(datacontext,HttpResponseRedirect)):
+                paramscms['HttpResponseRedirect']['link'] = datacontext
+            
             querydictend = connection.queries
             strsqlq = ''
             if(settings.DEBUG == True and MYCONF.DEBUGSQL == True):
