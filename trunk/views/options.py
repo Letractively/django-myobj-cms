@@ -126,7 +126,7 @@ class optionswitch:
                 ismenu = True
             proplist['name'] = proplist['namep'] = MYCONF.UPARAMS_MYSPACES[objectclass.get_tablespace_display()]['vlistcolumns']
         elif(islinks == True):
-            if(dicturls['paramslist'][1] == 'classes'):
+            if(dicturls['class'] == 'uclasses' and dicturls['paramslist'][1] == 'classes'):
                 objectclass = uClasses.objects.get(id=dicturls['paramslist'][2])
                 nameclasslinksall = objectclass.getspace(getlinksall=True)
                 listAggregationLinks = [objlinksall for objlinksall in TABLE_SPACE if nameclasslinksall == TABLE_SPACE[objlinksall][2]]
