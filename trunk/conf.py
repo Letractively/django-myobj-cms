@@ -6,16 +6,18 @@ MYSPACE_TABLES_CHOICES = (
     (1, 'my'),
     (2, 'system'),
     ### START EXAMP ###
-    #(3, 'exampleheaders'),
+    (3, 'exampleheaders'),
     ### END EXAMP ###
+    (4, 'realty'),
 )
 
 UPARAMS_MYSPACES = {
-    'my': {'vlistcolumns': ['id','name'], 'editcolumns': ['name','sort']},
+    'my': {'vlistcolumns': ['id','name'], 'editcolumns': ['name','content','sort']},
     'system': {'vlistcolumns': ['id','name'], 'editcolumns': ['name','sort']},
     ### START EXAMP ###
-    #'exampleheaders': {'vlistcolumns': ['id','name'], 'editcolumns': ['name',('locations','myobj.models__examplelocationhome'),('sales','myobj.models__examplesellers')]},
+    'exampleheaders': {'vlistcolumns': ['id','name'], 'editcolumns': ['name',('locations','myobj.models__examplelocationhome'),('sales','myobj.models__examplesellers')]},
     ### END EXAMP ###
+    'realty': {'vlistcolumns': ['id','numk'], 'editcolumns': ['numk','price','aream','typehom','typemat','typeorigin','addressmap',('locationrent','myobj.models__location_rent'),('userid','myobj.models__usersys'),('imagesdatarent','myobj.models__dataimages_rent')]},
 }
 
 STRUCT_MODELS = {
@@ -25,6 +27,18 @@ STRUCT_MODELS = {
     'myobj.models__examplesellers':
         {'editcolumns': ['name','description'], 'vlistcolumns': ['id','name'], 'links': [('locations', 'myobj.models__examplelocationhome')]},
     ### END EXAMP ###
+    'myobj.models__systemUploadsFiles': 
+        {'editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']},
+    'myobj.models__location_rent':
+        {'editcolumns': ['name','locat_chois'], 'vlistcolumns': ['id','name','locat_chois'], 'links': [('aggregation', 'myobj.models__location_rent')]},
+    'myobj.models__firmsys':
+        {'editcolumns': ['name','phone','site','desc'], 'vlistcolumns': ['id','name'], 'links': [('topuser', 'myobj.models__User')]},
+    'myobj.models__usersys':
+        {'editcolumns': ['type','firsname','lastname','specialization','phone','desc'], 'vlistcolumns': ['id'], 'links': [('userbasicid', 'myobj.models__User'),('regionjob', 'myobj.models__location_rent'),('firmsysyid', 'myobj.models__firmsys')]},
+    'myobj.models__dataimages_rent':
+        {'editcolumns': ['dfile'], 'vlistcolumns': ['id','dfile']},
+    'myobj.models__testmtmfk':
+        {'editcolumns': ['name','locat_chois'], 'vlistcolumns': ['id','name','locat_chois'], 'links': [('mtmparam', 'myobj.models__location_rent'),('fkpam', 'myobj.models__firmsys')]},
 }
 
 FORMS_ELEMENT_EDIT = {

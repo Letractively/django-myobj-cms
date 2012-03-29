@@ -66,9 +66,9 @@ def handle(value, paramscms):
             tracing = "\n{'view': 'nview: " + namemodul + "." + nameview + "(L" + str(viewobj.id) + "), ntempl: " + str(patchtemplate) + "(L" + (str(templateobj.id) if templateobj else '') + "), time: " + str(("%.3f" % (end_time - start_time))) + "', \n" + strsqlq + "\n},"
         except Exception as e:
             if(settings.DEBUG == True):
-                raise e
+                html = namemodul + '.' + nameview + ' : ' + str(e)
             else:
-                return ''
+                html = ''
     if(hasattr(handle, 'tracingstr')):
         handle.tracingstr += tracing
     else: handle.tracingstr = tracing
