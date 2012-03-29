@@ -10,7 +10,8 @@ def getpage(request, *args, **kwargs):
     actionurl = [pr for pr in request.path_info.split('/') if pr != '']
     classmenu = uClasses.objects.get(codename='menu_system')
     itemnav = actionurl[1] if (NAVENTRY != '') else actionurl[0]
-    
+    for i in range(10):
+        if(i+1 > len(actionurl)): actionurl.append('')
     if(str(itemnav).isdigit()):
         objmenu = classmenu.getobjects(id=itemnav)
     else:
@@ -32,4 +33,3 @@ def getpage(request, *args, **kwargs):
     if(ObjHttpResponseRedirect['link'] != None):
         return ObjHttpResponseRedirect['link']
     return response
-

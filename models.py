@@ -471,6 +471,7 @@ class myObjHeaders(AbsBaseHeaders):
     lines = models.ManyToManyField(myObjLines,blank=True) #без строк можно создать
     #user params
     name = models.CharField(max_length=255)
+    content = models.TextField(blank=True)
     sort = models.IntegerField(blank=True,null=True,default=0)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjheaders'
@@ -488,40 +489,122 @@ class systemUploadsFiles(models.Model):
         db_table = MYCONF.PROJECT_NAME + '_ucms_uploadfiles'
 
 ### START example models #########################################################################################################################
-#TYPELOCATION_CHOICES = (
-#    (1, 'country'),
-#    (2, 'sity'),
-#)
-#class examplelocationhome(models.Model):
-#    name = models.CharField(max_length=25)
-#    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
-#    aggregation = models.ManyToManyField("self",blank=True)
-#    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_examplelocationhome'
-#class examplesellers(models.Model):
-#    name = models.CharField(max_length=25)
-#    description = models.CharField(max_length=255)
-#    locations = models.ManyToManyField(examplelocationhome)
-#    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_examplesellers'
-#class exampleHeadersLines(AbsBaseLines):
-#    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaderslines'
-#class exampleHeaders(AbsBaseHeaders):
-#    lines = models.ManyToManyField(exampleHeadersLines,blank=True)
-#    
-#    name = models.CharField(max_length=25)
-#    locations = models.ManyToManyField(examplelocationhome,blank=True)
-#    sales = models.ForeignKey(examplesellers)
-#    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaders'
+TYPELOCATION_CHOICES = (
+    (1, 'country'),
+    (2, 'sity'),
+)
+class examplelocationhome(models.Model):
+    name = models.CharField(max_length=25)
+    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
+    aggregation = models.ManyToManyField("self",blank=True)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_examplelocationhome'
+class examplesellers(models.Model):
+    name = models.CharField(max_length=25)
+    description = models.CharField(max_length=255)
+    locations = models.ManyToManyField(examplelocationhome)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_examplesellers'
+class exampleHeadersLines(AbsBaseLines):
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaderslines'
+class exampleHeaders(AbsBaseHeaders):
+    lines = models.ManyToManyField(exampleHeadersLines,blank=True)
+    
+    name = models.CharField(max_length=25)
+    locations = models.ManyToManyField(examplelocationhome,blank=True)
+    sales = models.ForeignKey(examplesellers)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaders'
 ### END example models #########################################################################################################################
+class dataimages_rent(models.Model):
+    dfile = models.FileField(upload_to="images/picrent")
+    def save(self, *args, **kwargs):
+        isnewelem = False
+        if(self.id == None): isnewelem = True
+        super(dataimages_rent, self).save(*args, **kwargs)
+        if(isnewelem):
+            utils.renamefile(objfile=self.dfile,isrand=True)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_dataimages'
+#location - goroda mert i t.d
+TYPELOCATION_CHOICES = (
+    (1, 'country'),
+    (2, 'region'),
+    (3, 'sity'),
+    (4, 'area'),
+    (5, 'district'),
+    (6, 'metro'),
+)
+class location_rent(models.Model):
+    name = models.CharField(max_length=255)
+    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
+    aggregation = models.ManyToManyField("self",blank=True)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_locationall'
+class firmsys(models.Model):
+    name = models.CharField(max_length=120)
+    phone = models.CharField(max_length=20)
+    site = models.CharField(max_length=60)
+    desc = models.CharField(max_length=255)
+    topuser = models.OneToOneField(User)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_firmsys'
+TYPEUSER_CHOICES = (
+    ('1', 'Специалист'),
+    ('2', 'Часное лицо'),
+)
+class testmtmfk(models.Model):
+    name = models.CharField(max_length=255)
+    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
+    mtmparam = models.ManyToManyField(location_rent)
+    fkpam = models.ForeignKey(firmsys)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_testmtmfk'
+class usersys(models.Model):
+    type = models.CharField(max_length=1,choices=TYPEUSER_CHOICES)
+    regionjob = models.ForeignKey(location_rent,blank=True,null=True)
+    userbasicid = models.OneToOneField(User)
+    specialization = models.CharField(max_length=255,blank=True)
+    firmsysyid = models.ForeignKey(firmsys,blank=True,null=True)
+    phone = models.CharField(max_length=20)
+    firsname = models.CharField(max_length=20)
+    lastname = models.CharField(max_length=20,blank=True)
+    desc = models.CharField(max_length=255)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_usersys'
+class codesactreg(models.Model):
+    code = models.CharField(max_length=20)
+    user = models.ForeignKey(User)
+    datereg = models.DateTimeField(auto_now = True)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_codesactreg'
+class realRentobjLines(AbsBaseLines):
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_ucms_realrentobjlines'
+class realRentobjHeaders(AbsBaseHeaders):
+    lines = models.ManyToManyField(myObjLines,blank=True)
+    _flagAutoAddedLinks = False
+    #user params
+    numk = models.PositiveSmallIntegerField() #кол комн
+    price = models.IntegerField() #цена при измен цены сохран ее в спец табл вести лог изм цен
+    aream = models.CharField(max_length=255) #metr
+    typehom = models.PositiveSmallIntegerField() #change вид недв
+    typemat = models.PositiveSmallIntegerField() #change тип дома
+    typeorigin = models.PositiveSmallIntegerField() #тип источника бурется при создании объекта пользователем из его настроек
+    addressmap = models.CharField(max_length=255) #адрес на карте или просто адрес для google
+    locationrent = models.ForeignKey(location_rent) #город или населенный пункт связка с location_rent
+    userid = models.ForeignKey(usersys) #связка с пользователем
+    imagesdatarent = models.ManyToManyField(dataimages_rent,blank=True,null=True)
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_ucms_realrentobjheaders'
 
 # MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
 TABLE_SPACE = {
     1: (myObjHeaders, myObjLines, linksObjectsAll), #(1, 'my') MYSPACE_TABLES_CHOICES
-    2: (systemObjHeaders, systemObjLines linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
-    #3: (exampleHeaders, exampleHeadersLines, linksObjectsAll), #add your space #3: (exampleHeaders, exampleHeadersLines),
+    2: (systemObjHeaders, systemObjLines, linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
+    3: (exampleHeaders, exampleHeadersLines, linksObjectsAll), #add your space #3: (exampleHeaders, exampleHeadersLines),
+    4: (realRentobjHeaders, realRentobjLines, None),
 }
 def get_space_model(idnameclass, getlines, getlinksall=False): # getlines is False then return Headers
     if(str(idnameclass).isdigit()):
