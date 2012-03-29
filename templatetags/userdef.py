@@ -42,7 +42,7 @@ def handle(value, paramscms):
             getmodul = importlib.import_module(namemodul)
             linkfunk = getmodul.__getattribute__(nameview)
         
-            datacontext = linkfunk(paramscms)
+            datacontext = linkfunk(**paramscms)
             querydictend = connection.queries
             strsqlq = ''
             if(settings.DEBUG == True and MYCONF.DEBUGSQL == True):
