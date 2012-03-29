@@ -26,7 +26,10 @@ def getpage(request, *args, **kwargs):
         indh = token.find('|handle:')
         if(indh != -1):
             counthandles += 1
-    mycontextdict = {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl}}
+    ObjHttpResponseRedirect = {'link': None}
+    mycontextdict = {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl, 'HttpResponseRedirect': ObjHttpResponseRedirect}}
     response = render_to_response(templateobj.propertiesdict['patch_tamplate_system'], mycontextdict)
+    if(ObjHttpResponseRedirect['link'] != None):
+        return ObjHttpResponseRedirect['link']
     return response
 
