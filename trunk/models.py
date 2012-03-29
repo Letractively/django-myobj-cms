@@ -31,8 +31,27 @@ class uClasses(models.Model):
     properties = models.ManyToManyField(objProperties,blank=True)
     aggregation = models.ManyToManyField("self",blank=True)
     objectsqueryset = []
-    def getspace(self,getlines=False):
-        return get_space_model(self.id, getlines)
+    _getclasslinksall = None
+    _getclasslines = None
+    _getclassheader = None
+    def getspace(self,getlines=False,getlinksall=False):
+        if(getlinksall == False):
+            if(getlines==True and self._getclasslines != None):
+                return self._getclasslines
+            elif(getlines==False and self._getclassheader != None):
+                return self._getclassheader
+        elif(self._getclasslinksall != None):
+            return self._getclasslinksall
+        
+        classget = get_space_model(self.id, getlines, getlinksall)
+        if(getlinksall == True and self._getclasslinksall == None):
+            self._getclasslinksall = classget
+        else:
+            if(getlines == True and self._getclasslines == None):
+                self._getclasslines = classget
+            elif(getlines == False and self._getclassheader == None):
+                self._getclassheader = classget
+        return classget
     def getobjects(self, namesvprop=[], *args, **kwargs):
         modelheader = get_space_model(self.id, False)
         newkwargs = {'uclass': str(self.id)}
@@ -118,14 +137,22 @@ class myObjLines(AbsBaseLines):
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjlines'
 
-class linksObjectsAll(models.Model):
+class AbsBaseLinksObjects(models.Model):
     idobj = models.IntegerField(blank=False)
     name = models.CharField(max_length=255)
     uclass = models.ForeignKey(uClasses)
     links = models.ManyToManyField("self",blank=True)
     class Meta:
+        abstract = True
+
+class linksObjectsSystem(AbsBaseLinksObjects):
+    class Meta:
+        db_table = MYCONF.PROJECT_NAME + '_ucms_linksobjectssystem'
+
+class linksObjectsAll(AbsBaseLinksObjects):
+    class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_linksobjectsall'
-        
+
 #headersObject
 class AbsBaseHeaders(models.Model):
     _flagAutoAddedLinks = True
@@ -336,7 +363,8 @@ class AbsBaseHeaders(models.Model):
     def therelinks(f):
         def tmp(*args, **kwargs):
             try:
-                linksObjectsAll.objects.get(idobj=str(args[0].id),uclass=str(args[0].uclass.id))
+                classlinks = args[0].uclass.getspace(getlinksall=True)
+                classlinks.objects.get(idobj=str(args[0].id),uclass=str(args[0].uclass.id))
             except: return []
             else:
                 return f(*args, **kwargs)
@@ -347,7 +375,7 @@ class AbsBaseHeaders(models.Model):
         dictparam = {}
         dictparam['uclass__id' if str(classname).isdigit() else 'uclass__codename'] = classname
 
-        listidobjects = [objlink.idobj for objlink in linksObjectsAll.objects.get(idobj=self.id,uclass=self.uclass).links.all().filter(**dictparam)]
+        listidobjects = [objlink.idobj for objlink in self.uclass.getspace(getlinksall=True).objects.get(idobj=self.id,uclass=self.uclass).links.all().filter(**dictparam)]
         dictparaminclass = {}
         dictparaminclass['id' if str(classname).isdigit() else 'codename'] = classname
         objclass = uClasses.objects.get(**dictparaminclass)
@@ -355,7 +383,7 @@ class AbsBaseHeaders(models.Model):
         return objects if (asall == True) else (objects[0] if (len(objects) > 0) else False)
     
     def _getlinks(self):
-        mylinkobject = linksObjectsAll.objects.get(idobj=self.id,uclass=self.uclass)
+        mylinkobject = self.uclass.getspace(getlinksall=True).objects.get(idobj=self.id,uclass=self.uclass)
         return mylinkobject.links
     #type options 'add', 'clear', 'remove'
     @therelinks
@@ -370,7 +398,7 @@ class AbsBaseHeaders(models.Model):
             if(len(objects) > 0):
                 first = objects[0]
                 classname = first.uclass
-                objectslinks = linksObjectsAll.objects.filter(idobj__in=[object.id for object in objects],uclass=classname)
+                objectslinks = self.uclass.getspace(getlinksall=True).objects.filter(idobj__in=[object.id for object in objects],uclass=classname)
                 if(ManyToOny == True):
                     self.linksedit('clear', ClassName=classname.name)
                     self._getlinks().__getattribute__(type)(objectslinks[0])
@@ -382,7 +410,7 @@ class AbsBaseHeaders(models.Model):
         self.lines.all().delete()
         #del links
         try:
-            thislink = linksObjectsAll.objects.get(idobj=self.id,uclass=self.uclass)
+            thislink = self.uclass.getspace(getlinksall=True).objects.get(idobj=self.id,uclass=self.uclass)
             thislink.links.clear()
             thislink.delete()
         except: pass
@@ -391,14 +419,13 @@ class AbsBaseHeaders(models.Model):
     
     def _manuallyCreateManuallyLink(self):
         try:
-            objlinks = linksObjectsAll.objects.get(idobj=self.id,uclass=self.uclass)
+            objlinks = self.uclass.getspace(getlinksall=True).objects.get(idobj=self.id,uclass=self.uclass)
             objlinks.name = self.name
             objlinks.save()
         #if the object does not create a table of links to
         except:
-            #objlink = linksObjectsAll(idobj=self.id)
-            #objlink.save()
-            objl = linksObjectsAll(idobj=self.id,name=self.name,uclass=self.uclass)
+            classlinkall = self.uclass.getspace(getlinksall=True)
+            objl = classlinkall(idobj=self.id,name=self.name,uclass=self.uclass)
             objl.save()
             return 1 #is new obj
         else:
@@ -470,13 +497,13 @@ class systemUploadsFiles(models.Model):
 #    locat_chois = models.PositiveSmallIntegerField(choices=TYPELOCATION_CHOICES)
 #    aggregation = models.ManyToManyField("self",blank=True)
 #    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_ucms_examplelocationhome'
+#        db_table = MYCONF.PROJECT_NAME + '_examplelocationhome'
 #class examplesellers(models.Model):
 #    name = models.CharField(max_length=25)
 #    description = models.CharField(max_length=255)
 #    locations = models.ManyToManyField(examplelocationhome)
 #    class Meta:
-#        db_table = MYCONF.PROJECT_NAME + '_ucms_examplesellers'
+#        db_table = MYCONF.PROJECT_NAME + '_examplesellers'
 #class exampleHeadersLines(AbsBaseLines):
 #    class Meta:
 #        db_table = MYCONF.PROJECT_NAME + '_ucms_exampleheaderslines'
@@ -492,14 +519,17 @@ class systemUploadsFiles(models.Model):
 
 # MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
 TABLE_SPACE = {
-    1: (myObjHeaders, myObjLines), #(1, 'my') MYSPACE_TABLES_CHOICES
-    2: (systemObjHeaders, systemObjLines), #(2, 'system') MYSPACE_TABLES_CHOICES
-    #3: (exampleHeaders, exampleHeadersLines), #add your space #3: (exampleHeaders, exampleHeadersLines),
+    1: (myObjHeaders, myObjLines, linksObjectsAll), #(1, 'my') MYSPACE_TABLES_CHOICES
+    2: (systemObjHeaders, systemObjLines linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
+    #3: (exampleHeaders, exampleHeadersLines, linksObjectsAll), #add your space #3: (exampleHeaders, exampleHeadersLines),
 }
-def get_space_model(idnameclass, getlines): # getlines is False then return Headers
+def get_space_model(idnameclass, getlines, getlinksall=False): # getlines is False then return Headers
     if(str(idnameclass).isdigit()):
         objclassmodel = uClasses.objects.get(id=str(idnameclass))
     else:
         objclassmodel = uClasses.objects.get(codename=str(idnameclass))
     typlespace = TABLE_SPACE.get(objclassmodel.tablespace, False)
-    return typlespace[1 if getlines else 0]
+    if(getlinksall != False):
+        return typlespace[2]
+    else:
+        return typlespace[1 if getlines else 0]

@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 import math
 from django.conf import settings
 from django.utils import importlib
-from myobj.models import uClasses, objProperties, get_space_model, linksObjectsAll
+from myobj.models import uClasses, objProperties, get_space_model, TABLE_SPACE
 from myobj.forms import FormUClasses, FormobjProperties, actionsetparam, designUI
 from myobj import conf as MYCONF
 from myobj import utils
@@ -99,11 +99,17 @@ def vi_proc_form(request):
     standartproc['myfields'] = {'minmax': [namefield[0] for namefield in MYCONF.TYPES_MYFIELDS_CHOICES if namefield[0] in MYCONF.MAXMIN_MYFIELDS]}
     return standartproc
 
+def getclasslinksall(idclass):
+    objectclass = uClasses.objects.get(id=idclass)
+    classlinksall = objectclass.getspace(getlinksall=True)
+    return classlinksall
+
 class optionswitch:
     def __init__(self, *args, **kwargs):
         self.data = []
     def _istherelinks(self,idobj,classid):
         try:
+            linksObjectsAll = getclasslinksall(classid)
             links = linksObjectsAll.objects.get(idobj=idobj,uclass=classid)
         except:
             return False
@@ -112,6 +118,7 @@ class optionswitch:
         isobjects = False
         ismenu = False
         resultnosearch = False
+        listAggregationLinks = []
         if(dicturls['class']=='uobjects' and islinks == False):
             isobjects = True
             objectclass = uClasses.objects.get(id=dicturls['paramslist'][1])
@@ -119,6 +126,11 @@ class optionswitch:
                 ismenu = True
             proplist['name'] = proplist['namep'] = MYCONF.UPARAMS_MYSPACES[objectclass.get_tablespace_display()]['vlistcolumns']
         elif(islinks == True):
+            if(dicturls['paramslist'][1] == 'classes'):
+                objectclass = uClasses.objects.get(id=dicturls['paramslist'][2])
+                nameclasslinksall = objectclass.getspace(getlinksall=True)
+                listAggregationLinks = [objlinksall for objlinksall in TABLE_SPACE if nameclasslinksall == TABLE_SPACE[objlinksall][2]]
+            
             if(dicturls['paramslist'][0] == 'linkall'): proplist['name'] = proplist['namep'] = ['id','name','uclass']
         argsord = []
         sortnamep = '-id'
@@ -130,6 +142,8 @@ class optionswitch:
             objects = obj.objects.all().order_by(*argsord)
         except AttributeError: #is list filtered
             objects = obj.order_by(*argsord)
+        if(len(listAggregationLinks) > 0):
+            objects = [objectsalesses for objectsalesses in obj.objects.all() if objectsalesses.tablespace in listAggregationLinks]
         if((len(objects) > 0) and (request.POST.has_key('searchcolumn') and request.POST['searchcolumn'] != '') and (request.POST.has_key('searchstrv') and request.POST['searchstrv'] != '')):
             searchkwargs = {}
             searchkwargs[request.POST['searchcolumn'] + '__contains'] = request.POST['searchstrv']
@@ -659,6 +673,7 @@ def controller(request, object, dicturls):
             linkobj.save()
             paramp = dicturls['class'] + '/model/' + dictparams['model'] + '/obj/' + str(dictparams['idobj'])
         else:
+            linksObjectsAll = getclasslinksall(dictparams['idclass'])
             linkobj = linksObjectsAll.objects.get(idobj=dictparams['idobj'], uclass=dictparams['idclass'])
             listmylinks = [(str(objlink.id), objlink) for objlink in linkobj.links.all() if str(objlink.id) not in dictparams['objectsno'].split(',')]
             mylinks = [objlink[0] for objlink in listmylinks]
@@ -836,6 +851,7 @@ def get_url(request, *args, **kwargs):
         if(dicturls['paramslist'][0]==''):
             return HttpResponseRedirect('/' + dicturls['myadm'] + '/uclasses/')
         elif(dicturls['paramslist'][0]=='linkall' and dicturls['paramslist'][5] != ''):
+            linksObjectsAll = getclasslinksall(dicturls['paramslist'][3])
             objwork = linksObjectsAll.objects.filter(uclass__id__in=dicturls['paramslist'][5].split(','))
             addition_men.append(('set link', 'urladdlinkobject','classaddlinkm'))
             if(dicturls['paramslist'][6]=='permission' or dicturls['paramslist'][6]=='params'):
