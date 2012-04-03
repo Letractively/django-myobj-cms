@@ -13,6 +13,7 @@ import time
 
 def handle(value, paramscms):
     start_time = time.time()
+    if(hasattr(handle, 'tracingstr') == False): handle.tracingstr = ''
     handle.countiter = (handle.countiter + 1) if hasattr(handle, 'countiter') else 1
     handle.handlesnav = handle.handlesnav if hasattr(handle, 'handlesnav') else paramscms['itemnav'].links('handle_system')
     handle.handleobj = handle.handleobj if hasattr(handle, 'handleobj') else dict([(objh.name, {'view': objh.links('views_system',False),'grouplist': [objgroup.name for objgroup in objh.links('views_system',False).links('group_system')] if objh.links('views_system',False) != False else [],'template': objh.links('template_system',False)}) for objh in handle.handlesnav.select_related().all()])
@@ -64,14 +65,13 @@ def handle(value, paramscms):
             #tracing
             end_time = time.time()
             tracing = "\n{'view': 'nview: " + namemodul + "." + nameview + "(L" + str(viewobj.id) + "), ntempl: " + str(patchtemplate) + "(L" + (str(templateobj.id) if templateobj else '') + "), time: " + str(("%.3f" % (end_time - start_time))) + "', \n" + strsqlq + "\n},"
+            handle.tracingstr += tracing
         except Exception as e:
             if(settings.DEBUG == True):
-                html = namemodul + '.' + nameview + ' : ' + str(e)
+                del handle.countiter, handle.handlesnav, handle.handleobj, handle.tracingstr
+                raise e
             else:
                 html = ''
-    if(hasattr(handle, 'tracingstr')):
-        handle.tracingstr += tracing
-    else: handle.tracingstr = tracing
     
     if(handle.countiter == paramscms['counthand']):
         if(settings.DEBUG == True):
