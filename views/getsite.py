@@ -21,6 +21,7 @@ def getpage(request, *args, **kwargs):
     templateobj = mythisnav.links('template_system',False)
     request.__setattr__('mygrouplist', getusergrouplist(requestobj = request))
     counthandles = 0
+    ObjHttpResponseCOOKIE = HttpResponse()
     tempt = loader.get_template(templateobj.propertiesdict['patch_tamplate_system'])
     for variable in tempt.nodelist.get_nodes_by_type(VariableNode):
         token = variable.filter_expression.token
@@ -28,8 +29,10 @@ def getpage(request, *args, **kwargs):
         if(indh != -1):
             counthandles += 1
     ObjHttpResponseRedirect = {'link': None}
-    mycontextdict = {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl, 'HttpResponseRedirect': ObjHttpResponseRedirect}}
+    mycontextdict = {'paramsreq': {'counthand': counthandles,'request': request, 'itemnav': mythisnav, 'actionurl': actionurl, 'HttpResponseRedirect': ObjHttpResponseRedirect, 'httpresponse_cookie': ObjHttpResponseCOOKIE}}
     response = render_to_response(templateobj.propertiesdict['patch_tamplate_system'], mycontextdict)
     if(ObjHttpResponseRedirect['link'] != None):
         return ObjHttpResponseRedirect['link']
+    if(len(ObjHttpResponseCOOKIE.cookies) > 0):
+        response.cookies = ObjHttpResponseCOOKIE.cookies
     return response

@@ -14,6 +14,7 @@ import time
 def handle(value, paramscms):
     start_time = time.time()
     if(hasattr(handle, 'tracingstr') == False): handle.tracingstr = ''
+    if(hasattr(handle, 'loadmodul') == False): handle.loadmodul = {}
     handle.countiter = (handle.countiter + 1) if hasattr(handle, 'countiter') else 1
     handle.handlesnav = handle.handlesnav if hasattr(handle, 'handlesnav') else paramscms['itemnav'].links('handle_system')
     handle.handleobj = handle.handleobj if hasattr(handle, 'handleobj') else dict([(objh.name, {'view': objh.links('views_system',False),'grouplist': [objgroup.name for objgroup in objh.links('views_system',False).links('group_system')] if objh.links('views_system',False) != False else [],'template': objh.links('template_system',False)}) for objh in handle.handlesnav.select_related().all()])
@@ -41,8 +42,11 @@ def handle(value, paramscms):
         
         startlenq = len(connection.queries)
         try:
-            getmodul = importlib.import_module(namemodul)
-            linkfunk = getmodul.__getattribute__(nameview)
+            if(handle.loadmodul.has_key(namemodul) == False):
+                getmodul = importlib.import_module(namemodul)
+                handle.loadmodul[namemodul] = getmodul
+            
+            linkfunk = handle.loadmodul[namemodul].__getattribute__(nameview)
         
             datacontext = linkfunk(**paramscms)
             if(paramscms['HttpResponseRedirect']['link'] == None and isinstance(datacontext,HttpResponseRedirect)):
@@ -60,7 +64,7 @@ def handle(value, paramscms):
                 t = get_template(patchtemplate)
                 renderhtml = t.render(Context({'datacontext': datacontext}))
             else:
-                renderhtml = datacontext
+                renderhtml = str(datacontext)
             html = renderhtml
             #tracing
             end_time = time.time()
@@ -68,7 +72,7 @@ def handle(value, paramscms):
             handle.tracingstr += tracing
         except Exception as e:
             if(settings.DEBUG == True):
-                del handle.countiter, handle.handlesnav, handle.handleobj, handle.tracingstr
+                del handle.countiter, handle.handlesnav, handle.handleobj, handle.tracingstr, handle.loadmodul
                 raise e
             else:
                 html = ''
@@ -76,10 +80,6 @@ def handle(value, paramscms):
     if(handle.countiter == paramscms['counthand']):
         if(settings.DEBUG == True):
             html += "<script>var tracingsys = [" + handle.tracingstr + "];</script>"
-            del handle.tracingstr
-        
-        del handle.countiter
-        del handle.handlesnav
-        del handle.handleobj
+        del handle.countiter, handle.handlesnav, handle.handleobj, handle.tracingstr, handle.loadmodul
     
     return html
