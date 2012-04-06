@@ -18,13 +18,17 @@ UPARAMS_MYSPACES = {
     ### END EXAMP ###
 }
 
+NAMEUPLOADMODEL = 'myobj.models__systemuploadsfiles'
+
 STRUCT_MODELS = {
     ### START EXAMP ###
-    'myobj.models__examplelocationhome':
-        {'editcolumns': ['name','locat_chois'], 'vlistcolumns': ['id','name','locat_chois'], 'links': [('aggregation', 'myobj.models__examplelocationhome')]},
-    'myobj.models__examplesellers':
-        {'editcolumns': ['name','description'], 'vlistcolumns': ['id','name'], 'links': [('locations', 'myobj.models__examplelocationhome')]},
+    #'myobj.models__examplelocationhome':
+    #    {'editcolumns': ['name','locat_chois'], 'vlistcolumns': ['id','name','locat_chois'], 'links': [('aggregation', 'myobj.models__examplelocationhome')]},
+    #'myobj.models__examplesellers':
+    #    {'editcolumns': ['name','description'], 'vlistcolumns': ['id','name'], 'links': [('locations', 'myobj.models__examplelocationhome')]},
     ### END EXAMP ###
+    NAMEUPLOADMODEL: 
+        {'editcolumns': ['name','dfile'], 'vlistcolumns': ['id','name','dfile']},
 }
 
 FORMS_ELEMENT_EDIT = {
@@ -78,6 +82,7 @@ NAVENTRY = 'ru/'
 
 MAXMIN_MYFIELDS = [1,2,3,4] #TYPES_MYFIELDS_CHOICES
 nameadmin_patch = 'admin'
+UPLOADMEDIA_PATCH = 'ucmsfiles'
 
 listtopmen = [
     (
