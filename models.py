@@ -484,12 +484,6 @@ class myObjHeaders(AbsBaseHeaders):
 class systemuploadsfiles(models.Model):
     name = models.CharField(max_length=255)
     dfile = models.FileField(upload_to=MYCONF.UPLOADMEDIA_PATCH)
-    def save(self, *args, **kwargs):
-        isnewelem = False
-        if(self.id == None): isnewelem = True
-        super(systemuploadsfiles, self).save(*args, **kwargs)
-        if(isnewelem):
-            utils.renamefile(objfile=self.dfile,isrand=True)
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_uploadfiles'
 
