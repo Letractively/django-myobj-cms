@@ -43,7 +43,7 @@ class uClasses(models.Model):
         elif(self._getclasslinksall != None):
             return self._getclasslinksall
         
-        classget = get_space_model(self.id, getlines, getlinksall)
+        classget = get_space_model(getlines=getlines, getlinksall=getlinksall, tablespace=self.tablespace)
         if(getlinksall == True and self._getclasslinksall == None):
             self._getclasslinksall = classget
         else:
@@ -53,7 +53,7 @@ class uClasses(models.Model):
                 self._getclassheader = classget
         return classget
     def getobjects(self, namesvprop=[], *args, **kwargs):
-        modelheader = get_space_model(self.id, False)
+        modelheader = get_space_model(getlines=False, tablespace=self.tablespace)
         newkwargs = {'uclass': str(self.id)}
         newkwargs = dict(newkwargs.items() + kwargs.items())
         self.objectsqueryset = modelheader.objects.filter(**newkwargs).select_related()
@@ -101,7 +101,7 @@ class uClasses(models.Model):
             fieldlookups = '__' + findparam[1] if (len(findparam) > 1) else ''
             newkwargs[MYCONF.TYPES_COLUMNS[dict(MYCONF.TYPES_MYFIELDS)[dict(MYCONF.TYPES_MYFIELDS_CHOICES)[namefieldprops[findparam[0]]]]] + fieldlookups] = kwargs[keyw]
             
-        modellines = get_space_model(self.id, True)
+        modellines = get_space_model(getlines=True, tablespace=self.tablespace)
         lines = modellines.objects.select_related().filter(**newkwargs)
         listidclassobjects = [obj.id for obj in self.objectsqueryset]
         listobjectslinks = []
@@ -524,12 +524,14 @@ TABLE_SPACE = {
     2: (systemObjHeaders, systemObjLines linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
     #3: (exampleHeaders, exampleHeadersLines, linksObjectsAll), #add your space #3: (exampleHeaders, exampleHeadersLines),
 }
-def get_space_model(idnameclass, getlines, getlinksall=False): # getlines is False then return Headers
-    if(str(idnameclass).isdigit()):
-        objclassmodel = uClasses.objects.get(id=str(idnameclass))
+def get_space_model(idnameclass=None, getlines=False, getlinksall=False, tablespace=None): # getlines is False then return Headers
+    if(tablespace):
+        tablespaceid = tablespace
+    elif(str(idnameclass).isdigit()):
+        tablespaceid = uClasses.objects.get(id=str(idnameclass)).tablespace
     else:
-        objclassmodel = uClasses.objects.get(codename=str(idnameclass))
-    typlespace = TABLE_SPACE.get(objclassmodel.tablespace, False)
+        tablespaceid = uClasses.objects.get(codename=str(idnameclass)).tablespace
+    typlespace = TABLE_SPACE.get(tablespaceid, False)
     if(getlinksall != False):
         return typlespace[2]
     else:
