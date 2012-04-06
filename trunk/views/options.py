@@ -377,7 +377,8 @@ class optionswitch:
                 for elemedit in elemseditlist:
                     dictparamsinit[elemedit] = objectcurrent.__getattribute__(elemedit)
                 nameclassobj = objectcurrent.__class__.__name__
-                if(nameclassobj == 'systemUploadsFiles'):
+                #if files
+                if(nameclassobj == MYCONF.NAMEUPLOADMODEL.split('__')[1] and idobjurl['paramslist'][3] != '0'):
                     dictparamsinit['patch_name_file'] = objectcurrent.dfile.name
                 
                 addinitial = {}
@@ -453,9 +454,8 @@ class optionswitch:
                                 objectcurrent.__setattr__(nameelemmodel,request.FILES[nameelemmodel])
                         if(request.POST.has_key('patch_name_file') and request.POST['patch_name_file']!='' and hasattr(objectcurrent,'dfile') and objectcurrent.dfile.name!=request.POST['patch_name_file']):
                             utils.renamefile(objectcurrent.dfile,setname=request.POST['patch_name_file'])
-                        #is none element, create obj
-                        #if(idobjurl['paramslist'][3] == '0' and len(prevsaved) > 0):
-                            #objectcurrent.save()
+                        elif(hasattr(objectcurrent,'dfile')):
+                            utils.renamefile(objectcurrent.dfile,isrand=True)
                         dictidsaveskey = {}
                         if(dict(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]).has_key('links') == True):
                             listmtmfork = dict(MYCONF.STRUCT_MODELS[idobjurl['paramslist'][1]]['links'])
