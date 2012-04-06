@@ -55,9 +55,9 @@ var defhtninit = {
         ["link", "unlink", "|", "image", "|", "justifyLeft","justifyCenter","justifyRight", "|", "horizontalrule"]
     ]
 }
-var arriselemfiles = { {% for key, value in myhtml.typesprops.items %}{% if value in myhtml.listnamelinkmodel %}'{{ key }}': '{{value}}',{% endif %}{% endfor %} };
+var arriselemfiles = { {% for key, value in myhtml.typesprops.items %}{% if value = 'files' %}'{{ key }}': '{{value}}',{% endif %}{% endfor %} };
 for(var namekey in arriselemfiles) {
-    $('#id_'+namekey).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/model/' + arriselemfiles[namekey] + '/links/class/' + mysystem.urlparam['paramslist'][1] + '/obj/' + mysystem.urlparam['paramslist'][3] + '/prop/' + namekey + '">ids model ' + arriselemfiles[namekey] + '</a>');
+    $('#id_'+namekey).parent().append(' <a href="' +'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/' + mysystem.urlparam['paramslist'][0] + '/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/myobj.models__systemuploadsfiles/'+ namekey + '">ids model ' + arriselemfiles[namekey] + '</a>');
 }
 
 {% for key, value in myhtml.typesprops.items %}

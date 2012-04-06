@@ -236,8 +236,13 @@ class AbsBaseHeaders(models.Model):
         if(len(addinitial) > 0):
             for nameparam in addinitial:
                 if(isinstance(addinitial[nameparam],dict)):
-                    strnamemodul = dict(listmtmfork)[nameparam].split('__')[0]
-                    strnamemodel = dict(listmtmfork)[nameparam].split('__')[1]
+                    if(addinitial[nameparam]['model'] != MYCONF.NAMEUPLOADMODEL):
+                        strnamemodul = dict(listmtmfork)[nameparam].split('__')[0]
+                        strnamemodel = dict(listmtmfork)[nameparam].split('__')[1]
+                    #if files
+                    else:
+                        strnamemodul = MYCONF.NAMEUPLOADMODEL.split('__')[0]
+                        strnamemodel = MYCONF.NAMEUPLOADMODEL.split('__')[1]
                     mymodel = importlib.import_module(strnamemodul).__getattribute__(strnamemodel)
                     #links
                     ismtm = False
@@ -251,7 +256,7 @@ class AbsBaseHeaders(models.Model):
                     #link fj
                     except :
                         ismtm = False
-                    if(ismtm == True and addinitial[nameparam]['objects']!= ''):
+                    if((ismtm == True and addinitial[nameparam]['objects']!= '') or addinitial[nameparam]['model'] == MYCONF.NAMEUPLOADMODEL):
                         myobjscheck = addinitial[nameparam]['objects'].split(',')
                         myobjschecknon = []
                         if(addinitial[nameparam]['objectsno'] != ''):
@@ -476,13 +481,13 @@ class myObjHeaders(AbsBaseHeaders):
     class Meta:
         db_table = MYCONF.PROJECT_NAME + '_ucms_myobjheaders'
 
-class systemUploadsFiles(models.Model):
+class systemuploadsfiles(models.Model):
     name = models.CharField(max_length=255)
-    dfile = models.FileField(upload_to="ucmsfiles")
+    dfile = models.FileField(upload_to=MYCONF.UPLOADMEDIA_PATCH)
     def save(self, *args, **kwargs):
         isnewelem = False
         if(self.id == None): isnewelem = True
-        super(systemUploadsFiles, self).save(*args, **kwargs)
+        super(systemuploadsfiles, self).save(*args, **kwargs)
         if(isnewelem):
             utils.renamefile(objfile=self.dfile,isrand=True)
     class Meta:

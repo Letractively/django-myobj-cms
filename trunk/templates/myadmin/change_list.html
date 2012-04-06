@@ -37,12 +37,12 @@
 
 
 <form name="actnameurl" enctype="multipart/form-data" action="/{{ urls.myadm }}/{{ urls.class }}/action" method="POST" >{% csrf_token %}
-{{ formactlist.as_p }}
+{{ myhtml.formlist.as_p }}
 <span id="block_datafile"><label for="id_datafile">select the file:</label> <input type="file" name="datafile" id="id_datafile" /></span>
 <input type="submit" name="submitaction" id="id_submitaction" value="ok" />
 </form>
 
-{{ myhtml }}
+{{ myhtml.table }}
 
 <div id="menelem" class="main_menu">
 
@@ -222,6 +222,7 @@ $('#menelem a').live('click',
             listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][1];
             listchangespace.formactparam.params.value = 'isobjtrue';
             if(mysystem.urlparam['paramslist'][4] == 'linksmodel') {
+                listchangespace.formactparam.model.value = mysystem.urlparam['paramslist'][5];
                 listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][6];
                 listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/class/'+ mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/';
             }
