@@ -1,4 +1,4 @@
- from django.db import models
+from django.db import models
 from myobj import conf as MYCONF
 from myobj import utils
 from django.forms.models import modelformset_factory
