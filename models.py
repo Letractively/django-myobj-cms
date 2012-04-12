@@ -1,4 +1,4 @@
-﻿from django.db import models
+ from django.db import models
 from myobj import conf as MYCONF
 from myobj import utils
 from django.forms.models import modelformset_factory
@@ -520,7 +520,7 @@ class systemuploadsfiles(models.Model):
 # MYSPACE_TABLES_CHOICES conf.py mirror dict spaces (header,lines)
 TABLE_SPACE = {
     1: (myObjHeaders, myObjLines, linksObjectsAll), #(1, 'my') MYSPACE_TABLES_CHOICES
-    2: (systemObjHeaders, systemObjLines linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
+    2: (systemObjHeaders, systemObjLines, linksObjectsSystem), #(2, 'system') MYSPACE_TABLES_CHOICES
     #3: (exampleHeaders, exampleHeadersLines, linksObjectsAll), #add your space #3: (exampleHeaders, exampleHeadersLines),
 }
 def get_space_model(idnameclass=None, getlines=False, getlinksall=False, tablespace=None): # getlines is False then return Headers
