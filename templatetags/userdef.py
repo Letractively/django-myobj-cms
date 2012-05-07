@@ -41,14 +41,18 @@ def handle(value, paramscms):
         nameview = viewobj.propertiesdict['nameimport_view_system']
         
         startlenq = len(connection.queries)
+        ERRVIEW = False
         try:
             if(handle.loadmodul.has_key(namemodul) == False):
                 getmodul = importlib.import_module(namemodul)
                 handle.loadmodul[namemodul] = getmodul
             
             linkfunk = handle.loadmodul[namemodul].__getattribute__(nameview)
-        
-            datacontext = linkfunk(**paramscms)
+            try:
+                datacontext = linkfunk(**paramscms)
+            except:
+                ERRVIEW = True
+            
             if(paramscms['HttpResponseRedirect']['link'] == None and isinstance(datacontext,HttpResponseRedirect)):
                 paramscms['HttpResponseRedirect']['link'] = datacontext
             
@@ -73,7 +77,10 @@ def handle(value, paramscms):
         except Exception as e:
             if(settings.DEBUG == True):
                 del handle.countiter, handle.handlesnav, handle.handleobj, handle.tracingstr, handle.loadmodul
-                raise e
+                if(ERRVIEW == True):
+                    return linkfunk(**paramscms)
+                else:
+                    raise
             else:
                 html = ''
     

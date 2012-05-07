@@ -693,7 +693,7 @@ def controller(request, object, dicturls):
                 linkobj.links = linksObjectsAll.objects.filter(id__in = mylinks + mylinkscheck)
             linkobj.save()
             
-            objectclass = uClasses.objects.get(id=dictparams['params'])
+            objectclass = uClasses.objects.get(id=dictparams['idclass'])
             if(objectclass.codename == MYCONF.CLASS_NAME_GROUP):
                 paramp = 'uobjects/class/' + str(dictparams['idclass'])
             else:
