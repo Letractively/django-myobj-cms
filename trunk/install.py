@@ -16,7 +16,7 @@ ClASSN = [
     'codename','name','description','tablespace','properties','aggregation'
 ]
 CLASSL = [
-    ['template_system', 'template_system','template system',2,MYCONF.PROP_PATCH_TEMPLATE_SYS,''],
+    ['template_system', 'template_system','template system',2,MYCONF.PROP_PATCH_TEMPLATE_SYS + ',description_system',''],
     [MYCONF.CLASS_NAME_VIEWS,    MYCONF.CLASS_NAME_VIEWS,'',2,'importmodul_system,nameimport_view_system,description_system',''],
     [MYCONF.CLASS_NAME_HANDLE,   MYCONF.CLASS_NAME_HANDLE,'',2,'',MYCONF.CLASS_NAME_VIEWS + ',template_system'],
     [MYCONF.CLASS_PARAMSNAV_SYS,   MYCONF.CLASS_PARAMSNAV_SYS,'',2,'codename_system,description_system',''],
